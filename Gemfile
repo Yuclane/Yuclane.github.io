@@ -1,7 +1,10 @@
 # frozen_string_literal: true
 
-gem "plainwhite"
-gem "github-pages", group: :jekyll_plugins
-
 source "https://rubygems.org"
-gemspec
+
+gem "jekyll", "~> 3.10"
+gem "plainwhite", path: "." # 유지
+
+group :jekyll_plugins do
+  gem "jekyll-feed"
+end
