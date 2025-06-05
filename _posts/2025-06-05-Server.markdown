@@ -31,7 +31,7 @@ categories: Hardware Infra
 
 #### 랙 마운트 서버
 
-![랙 마운트 서버](Image/2025-06-05-Server/image00.png)
+![랙 마운트 서버](/assets/images/2025-06-05-Server/image00.png)
 
 **랙이란?**
 서버 또는 네트워크 장비들을 넣어두는 **철체 프레임**이다. 데이터센터나 서버 룸과 같이 다수의 서버/네트워크 장비들을 두는 곳에서 사용한다.
@@ -46,7 +46,7 @@ categories: Hardware Infra
 
 #### 타워형 서버
 
-![타워형 서버](Image/2025-06-05-Server/image01.png)
+![타워형 서버](/assets/images/2025-06-05-Server/image01.png)
 
 타워형 서버는 일반적으로 데이터 센터 입주용으로는 잘 사용되지 않는데 입주 비용(쉽게 말해 '월세')이 비싸기 때문이다. 
 
@@ -93,7 +93,7 @@ categories: Hardware Infra
 
 서버의 사양을 결정할 때 필요한 하드웨어 자원의 사용량을 정하고 나서 CPU, 메모리, 디스크, NIC 포트 수 등을 결정한다.
 
-![서버 조건](Image/2025-06-05-Server/image02.png)
+![서버 조건](/assets/images/2025-06-05-Server/image02.png)
 
 #### 서버 사양의 결정 방법
 
@@ -145,7 +145,7 @@ categories: Hardware Infra
 
 **예시:** DDR5-5600 램의 내부 동작 속도는 5600MHz를 의미하며, 이를 MB/s 단위로 표기하면 44800MB/s가 된다.
 
-![메모리 성능](Image/2025-06-05-Server/image03.png)
+![메모리 성능](/assets/images/2025-06-05-Server/image03.png)
 
 ### 주요 메모리 유형
 
@@ -172,7 +172,7 @@ REG 메모리는 **레지스터드(Registered) 메모리**라 하여 서버용�
 - **채널**: CPU와 메인보드가 지원하는 RAM의 최대 개수에 맞게 동일한 회사와 동일한 주파수의 램 구성
 - **랭크**: 1개의 DIMM에 64비트 DRAM 그룹이 1개면 싱글 랭크, 2개면 듀얼 랭크
 
-![랭크 구조](Image/2025-06-05-Server/image04.png)
+![랭크 구조](/assets/images/2025-06-05-Server/image04.png)
 
 ### DIMM 유형
 
@@ -206,7 +206,7 @@ CPU는 연산 능력이 높으면 높을수록 고성능 CPU로 분류한다.
 | **클럭** | 1초당 전기적 속도 (Hz). 높을수록 빠르지만 전력 소모와 발열 증가 |
 | **캐시** | CPU 구조에 메모리로 사용하도록 구성된 하드웨어 캐시 |
 
-![CPU 캐시](Image/2025-06-05-Server/image05.png)
+![CPU 캐시](/assets/images/2025-06-05-Server/image05.png)
 
 #### 하이퍼 스레딩
 
@@ -214,7 +214,7 @@ CPU는 연산 능력이 높으면 높을수록 고성능 CPU로 분류한다.
 
 - 하나의 프로세서 처리 시 프로세서 리소스를 각 쓰레드별로 할당하여 병렬 처리
 
-![하이퍼 스레딩](Image/2025-06-05-Server/image06.png)
+![하이퍼 스레딩](/assets/images/2025-06-05-Server/image06.png)
 
 #### 터보 부스트 기술, 프리시전 부스트
 
@@ -278,7 +278,7 @@ CPU는 연산 능력이 높으면 높을수록 고성능 CPU로 분류한다.
 | **MLC** | 5~10K Endurance Cycle | 적당한 성능, 합리적 가격 |
 | **TLC** | 1~3K Endurance Cycle | 느린 속도, 고용량, 저가 |
 
-![SSD 메모리 셀](Image/2025-06-05-Server/image07.png)
+![SSD 메모리 셀](/assets/images/2025-06-05-Server/image07.png)
 
 ### 엔터프라이즈 플래시 메모리 스토리지
 
@@ -330,14 +330,14 @@ RAID는 여러 개의 디스크를 묶어 하나의 디스크처럼 사용하는
 
 #### 호스트 운영체제 타입
 
-![호스트 운영체제 타입](Image/2025-06-05-Server/image08.png)
+![호스트 운영체제 타입](/assets/images/2025-06-05-Server/image08.png)
 
 - **장점**: 일반 운영체제에서 게스트 운영체제 운용으로 제약이 적음
 - **단점**: OS 위에 OS가 얹히는 방식으로 오버헤드가 클 수 있음
 
 #### 하이퍼바이저 타입
 
-![하이퍼바이저](Image/2025-06-05-Server/image09.png)
+![하이퍼바이저](/assets/images/2025-06-05-Server/image09.png)
 
 - **장점**: 별도의 호스트 운영체제가 없어 오버헤드가 적고 효율적
 - **단점**: 관리를 위한 별도 컴퓨터나 콘솔 필요
@@ -403,7 +403,7 @@ RAID는 여러 개의 디스크를 묶어 하나의 디스크처럼 사용하는
 
 ### 3계층 구조
 
-![3계층 구조](Image/2025-06-05-Server/image010.png)
+![3계층 구조](/assets/images/2025-06-05-Server/image10.png)
 
 여러 개의 서버 룸이 있는 환경에서 사용:
 
@@ -427,7 +427,7 @@ RAID는 여러 개의 디스크를 묶어 하나의 디스크처럼 사용하는
 - **프로토콜**: 컴퓨터 또는 전자 기기 간의 원활한 통신을 위해 지키기로 약속한 규약
 - **OSI 7 Layer**: 국제 표준화 기구에서 책정된 컴퓨터 통신 기능을 계층 구조로 나눈 모델
 
-![OSI 7 Layer](Image/2025-06-05-Server/image011.png)
+![OSI 7 Layer](/assets/images/2025-06-05-Server/image11.png)
 
 ### 전송 프로토콜
 
@@ -440,13 +440,13 @@ RAID는 여러 개의 디스크를 묶어 하나의 디스크처럼 사용하는
 2. 서버 → 클라이언트: ACK + SYN 패킷 전송  
 3. 클라이언트 → 서버: ACK 패킷 전송, 연결 성립
 
-![3웨이 핸드셰이크](Image/2025-06-05-Server/image012.png)
+![3웨이 핸드셰이크](/assets/images/2025-06-05-Server/image12.png)
 
 #### UDP (User Datagram Protocol)
 
 **특징**: 비연결형 프로토콜, 저품질이지만 고속
 
-![TCP vs UDP](Image/2025-06-05-Server/image013.png)
+![TCP vs UDP](/assets/images/2025-06-05-Server/image13.png)
 
 ### IP 주소 체계
 
@@ -461,9 +461,9 @@ RAID는 여러 개의 디스크를 묶어 하나의 디스크처럼 사용하는
 
 일반적으로 8개의 구리 선을 연결하여 통신한다.
 
-![LAN 케이블 종류](Image/2025-06-05-Server/image014.png)
+![LAN 케이블 종류](/assets/images/2025-06-05-Server/image14.png)
 
-![LAN 케이블 사양](Image/2025-06-05-Server/image015.png)
+![LAN 케이블 사양](/assets/images/2025-06-05-Server/image15.png)
 
 **특징**:
 - 가장 널리 사용되는 이더넷 연결 케이블
