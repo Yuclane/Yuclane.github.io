@@ -31,7 +31,7 @@ categories: Hardware Infra
 
 #### 랙 마운트 서버
 
-![랙 마운트 서버](/assets/Images/2025-06-05-Server/image00.png)
+![랙 마운트 서버](/assets/Images/1.Server_and_Infra/image00.png)
 
 **랙이란?**
 서버 또는 네트워크 장비들을 넣어두는 **철체 프레임**이다. 데이터센터나 서버 룸과 같이 다수의 서버/네트워크 장비들을 두는 곳에서 사용한다.
@@ -46,7 +46,7 @@ categories: Hardware Infra
 
 #### 타워형 서버
 
-![타워형 서버](/assets/Images/2025-06-05-Server/image01.png)
+![타워형 서버](/assets/Images/1.Server_and_Infra/image01.png)
 
 타워형 서버는 일반적으로 데이터 센터 입주용으로는 잘 사용되지 않는데 입주 비용(쉽게 말해 '월세')이 비싸기 때문이다. 
 
@@ -93,7 +93,7 @@ categories: Hardware Infra
 
 서버의 사양을 결정할 때 필요한 하드웨어 자원의 사용량을 정하고 나서 CPU, 메모리, 디스크, NIC 포트 수 등을 결정한다.
 
-![서버 조건](/assets/Images/2025-06-05-Server/image02.png)
+![서버 조건](/assets/Images/1.Server_and_Infra/image02.png)
 
 #### 서버 사양의 결정 방법
 
@@ -145,7 +145,7 @@ categories: Hardware Infra
 
 **예시:** DDR5-5600 램의 내부 동작 속도는 5600MHz를 의미하며, 이를 MB/s 단위로 표기하면 44800MB/s가 된다.
 
-![메모리 성능](/assets/Images/2025-06-05-Server/image03.png)
+![메모리 성능](/assets/Images/1.Server_and_Infra/image03.png)
 
 ### 주요 메모리 유형
 
@@ -172,7 +172,7 @@ REG 메모리는 **레지스터드(Registered) 메모리**라 하여 서버용�
 - **채널**: CPU와 메인보드가 지원하는 RAM의 최대 개수에 맞게 동일한 회사와 동일한 주파수의 램 구성
 - **랭크**: 1개의 DIMM에 64비트 DRAM 그룹이 1개면 싱글 랭크, 2개면 듀얼 랭크
 
-![랭크 구조](/assets/Images/2025-06-05-Server/image04.png)
+![랭크 구조](/assets/Images/1.Server_and_Infra/image04.png)
 
 ### DIMM 유형
 
@@ -206,7 +206,7 @@ CPU는 연산 능력이 높으면 높을수록 고성능 CPU로 분류한다.
 | **클럭** | 1초당 전기적 속도 (Hz). 높을수록 빠르지만 전력 소모와 발열 증가 |
 | **캐시** | CPU 구조에 메모리로 사용하도록 구성된 하드웨어 캐시 |
 
-![CPU 캐시](/assets/Images/2025-06-05-Server/image05.png)
+![CPU 캐시](/assets/Images/1.Server_and_Infra/image05.png)
 
 #### 하이퍼 스레딩
 
@@ -214,7 +214,7 @@ CPU는 연산 능력이 높으면 높을수록 고성능 CPU로 분류한다.
 
 - 하나의 프로세서 처리 시 프로세서 리소스를 각 쓰레드별로 할당하여 병렬 처리
 
-![하이퍼 스레딩](/assets/Images/2025-06-05-Server/image06.png)
+![하이퍼 스레딩](/assets/Images/1.Server_and_Infra/image06.png)
 
 #### 터보 부스트 기술, 프리시전 부스트
 
@@ -278,7 +278,7 @@ CPU는 연산 능력이 높으면 높을수록 고성능 CPU로 분류한다.
 | **MLC** | 5~10K Endurance Cycle | 적당한 성능, 합리적 가격 |
 | **TLC** | 1~3K Endurance Cycle | 느린 속도, 고용량, 저가 |
 
-![SSD 메모리 셀](/assets/Images/2025-06-05-Server/image07.png)
+![SSD 메모리 셀](/assets/Images/1.Server_and_Infra/image07.png)
 
 ### 엔터프라이즈 플래시 메모리 스토리지
 
@@ -330,14 +330,14 @@ RAID는 여러 개의 디스크를 묶어 하나의 디스크처럼 사용하는
 
 #### 호스트 운영체제 타입
 
-![호스트 운영체제 타입](/assets/Images/2025-06-05-Server/image08.png)
+![호스트 운영체제 타입](/assets/Images/1.Server_and_Infra/image08.png)
 
 - **장점**: 일반 운영체제에서 게스트 운영체제 운용으로 제약이 적음
 - **단점**: OS 위에 OS가 얹히는 방식으로 오버헤드가 클 수 있음
 
 #### 하이퍼바이저 타입
 
-![하이퍼바이저](/assets/Images/2025-06-05-Server/image09.png)
+![하이퍼바이저](/assets/Images/1.Server_and_Infra/image09.png)
 
 - **장점**: 별도의 호스트 운영체제가 없어 오버헤드가 적고 효율적
 - **단점**: 관리를 위한 별도 컴퓨터나 콘솔 필요
@@ -403,7 +403,7 @@ RAID는 여러 개의 디스크를 묶어 하나의 디스크처럼 사용하는
 
 ### 3계층 구조
 
-![3계층 구조](/assets/Images/2025-06-05-Server/image10.png)
+![3계층 구조](/assets/Images/1.Server_and_Infra/image10.png)
 
 여러 개의 서버 룸이 있는 환경에서 사용:
 
@@ -427,7 +427,7 @@ RAID는 여러 개의 디스크를 묶어 하나의 디스크처럼 사용하는
 - **프로토콜**: 컴퓨터 또는 전자 기기 간의 원활한 통신을 위해 지키기로 약속한 규약
 - **OSI 7 Layer**: 국제 표준화 기구에서 책정된 컴퓨터 통신 기능을 계층 구조로 나눈 모델
 
-![OSI 7 Layer](/assets/Images/2025-06-05-Server/image11.png)
+![OSI 7 Layer](/assets/Images/1.Server_and_Infra/image11.png)
 
 ### 전송 프로토콜
 
@@ -440,13 +440,13 @@ RAID는 여러 개의 디스크를 묶어 하나의 디스크처럼 사용하는
 2. 서버 → 클라이언트: ACK + SYN 패킷 전송  
 3. 클라이언트 → 서버: ACK 패킷 전송, 연결 성립
 
-![3웨이 핸드셰이크](/assets/Images/2025-06-05-Server/image12.png)
+![3웨이 핸드셰이크](/assets/Images/1.Server_and_Infra/image12.png)
 
 #### UDP (User Datagram Protocol)
 
 **특징**: 비연결형 프로토콜, 저품질이지만 고속
 
-![TCP vs UDP](/assets/Images/2025-06-05-Server/image13.png)
+![TCP vs UDP](/assets/Images/1.Server_and_Infra/image13.png)
 
 ### IP 주소 체계
 
@@ -461,9 +461,9 @@ RAID는 여러 개의 디스크를 묶어 하나의 디스크처럼 사용하는
 
 일반적으로 8개의 구리 선을 연결하여 통신한다.
 
-![LAN 케이블 종류](/assets/Images/2025-06-05-Server/image14.png)
+![LAN 케이블 종류](/assets/Images/1.Server_and_Infra/image14.png)
 
-![LAN 케이블 사양](/assets/Images/2025-06-05-Server/image15.png)
+![LAN 케이블 사양](/assets/Images/1.Server_and_Infra/image15.png)
 
 **특징**:
 - 가장 널리 사용되는 이더넷 연결 케이블
@@ -478,6 +478,208 @@ RAID는 여러 개의 디스크를 묶어 하나의 디스크처럼 사용하는
 
 ---
 
-## 스토리지
+# 스토리지
 
-데이터를 저장하는 장치를 스토리지라고 
+## 목차 (Table of Contents)
+
+1. [스토리지 개요](#스토리지-개요)
+2. [로컬 스토리지](#로컬-스토리지)
+3. [외부 스토리지](#외부-스토리지)
+   - [DAS (Direct Attached Storage)](#das-direct-attached-storage)
+   - [NAS (Network Attached Storage)](#nas-network-attached-storage)
+   - [SAN (Storage Area Network)](#san-storage-area-network)
+4. [스토리지 선택 가이드](#스토리지-선택-가이드)
+5. [주요 학습 포인트](#주요-학습-포인트)
+
+---
+
+## 스토리지 개요
+
+**스토리지(Storage)**란 데이터를 저장하는 장치를 의미한다. 
+
+스토리지는 크게 두 가지로 분류할 수 있다:
+
+- **로컬 스토리지**: 서버 내부의 저장 영역
+- **외부 스토리지**: 서버 외부의 저장 영역
+
+외부 스토리지는 연결 방식에 따라 다시 구분된다:
+- **직접 연결**: DAS (Direct Attached Storage)
+- **네트워크 연결**: NAS, SAN
+
+---
+
+## 로컬 스토리지
+
+### 정의
+서버 내부에 디스크를 설치해서 이용하는 저장 영역을 말한다.
+
+### 장점
+- ✅ **공간 절약**: 외부 스토리지를 사용하지 않아 설치 공간 절약
+- ✅ **비용 효율성**: 별도의 외부 장비 구매 불필요
+- ✅ **단순한 구조**: 복잡한 네트워크 설정 불필요
+
+### 단점
+- ❌ **제한된 확장성**: 설치 가능한 디스크 개수 제한
+- ❌ **낮은 유연성**: 서버 간 스토리지 공유 어려움
+- ❌ **단일 장애점**: 서버 장애 시 스토리지도 함께 영향
+
+---
+
+## 외부 스토리지
+
+서버 외부에 준비한 스토리지 장비 또는 스토리지 영역을 의미한다.
+
+### DAS (Direct Attached Storage)
+
+#### 개념
+*DAS*는 서버에 **직접 연결**되는 외부 스토리지 시스템이다.
+
+#### 특징
+- 운영체제는 DAS에 생성된 논리 드라이브를 **내장 디스크**와 동일하게 인식
+- 운영체제는 DAS와 내장 디스크를 구분하지 않고 똑같은 방식으로 처리
+
+#### 연결 방식
+
+| 연결 방식 | RAID 관리 주체 | 특징 |
+|----------|---------------|------|
+| **RAID 컨트롤러 보드** | RAID 컨트롤러 보드 | 서버에서 RAID 구성 관리 |
+| **HBA 보드** | 스토리지 내장 RAID 컨트롤러 | 스토리지에서 RAID 구성 관리 |
+
+> **HBA (Host Bus Adaptor)**: 서버와 스토리지 장치 간의 데이터 전송을 담당하는 어댑터
+
+#### 선택 고려사항
+DAS 선택 시 다음 요소들을 고려해야 한다:
+
+1. **실제 용량**: 필요한 데이터 저장 공간
+2. **성능**: I/O 처리 속도 요구사항
+3. **내장애성**: 데이터 보호 및 복구 능력
+4. **확장성**: 향후 용량 증설 가능성
+5. **디스크 슬롯 수**: 설치 가능한 디스크 개수
+
+### NAS (Network Attached Storage)
+
+#### 정의
+**Network Attached Storage**는 네트워크를 통해 여러 대의 서버가 액세스할 수 있는 스토리지다.
+
+#### 통신 프로토콜
+
+| 프로토콜 | 주요 용도 | 지원 OS |
+|----------|-----------|---------|
+| **NFS** | Unix/Linux 환경 | Linux, Unix |
+| **SMB/CIFS** | Windows 환경 | Windows, Linux |
+| **AFP** | macOS 환경 | macOS |
+
+#### 사용 사례
+```bash
+# Windows에서 NAS 접근 예시
+\\nas-server\shared-folder
+
+# Linux에서 NFS 마운트 예시
+sudo mount -t nfs nas-server:/export/data /mnt/nas
+```
+
+#### 주요 용도
+- 📁 **데이터 공유**: 여러 서버 간 파일 공유
+- 🔄 **백업 저장소**: 각 서버의 백업 파일 중앙 집중 저장
+- 📊 **로그 수집**: 분산된 서버의 로그 파일 통합 관리
+
+### SAN (Storage Area Network)
+
+#### 개념
+**블록 단위**의 데이터 스토리지 전용 네트워크다. 고속 고품질 환경을 요구하는 환경에서 이용된다.
+
+#### FC-SAN (Fibre Channel SAN)
+
+**Fibre Channel SAN**은 파이버 채널 기반으로 구축된 고속 고품질 스토리지 전용 네트워크다.
+
+**특징:**
+- 🏢 **엔터프라이즈급**: 기간계 데이터베이스 등 중요한 데이터 처리
+- ⚡ **고성능**: 높은 대역폭과 낮은 지연시간
+- 🔒 **고가용성**: 미션 크리티컬 시스템에 적합
+
+**연결 구성:**
+```
+서버 [HBA 보드] ↔ [SAN 스위치] ↔ [SAN 스토리지]
+     또는
+서버 [HBA 보드] ↔ [SAN 스토리지] (직접 연결)
+```
+
+#### IP-SAN (Internet Protocol SAN)
+
+**Internet Protocol SAN**은 이더넷을 이용하여 SAN을 구축하는 방식이다.
+
+**장점:**
+- 💰 **비용 효율성**: FC-SAN 대비 저렴한 구축 비용
+- 🌐 **표준 네트워크**: 기존 이더넷 인프라 활용 가능
+- 🔧 **관리 편의성**: IP 기반의 익숙한 관리 도구 사용
+
+**핵심 기술 - iSCSI:**
+> **iSCSI (Internet Small Computer Systems Interface)**: 서버와 스토리지 간 통신에 사용하는 SCSI 명령을 IP 네트워크를 통해 송수신하는 프로토콜
+
+**네트워크 구성:**
+```
+서버 ↔ [L2/L3 스위치] ↔ iSCSI 스토리지
+```
+
+---
+
+## 스토리지 선택 가이드
+
+### 용도별 권장 스토리지
+
+| 용도 | 권장 스토리지 | 이유 |
+|------|-------------|------|
+| **소규모 서버** | 로컬 스토리지 | 비용 효율성, 단순함 |
+| **파일 공유** | NAS | 네트워크 공유 기능 |
+| **백업 저장소** | NAS | 중앙 집중 관리 |
+| **고성능 DB** | FC-SAN | 높은 성능과 안정성 |
+| **중간 성능 요구** | IP-SAN | 성능과 비용의 균형 |
+| **고성능 단일 서버** | DAS | 전용 고성능 스토리지 |
+
+### 성능별 비교
+
+| 스토리지 타입 | 성능 | 비용 | 확장성 | 복잡성 |
+|-------------|------|------|--------|--------|
+| **로컬** | 높음 | 낮음 | 낮음 | 낮음 |
+| **DAS** | 높음 | 중간 | 중간 | 낮음 |
+| **NAS** | 중간 | 중간 | 높음 | 중간 |
+| **IP-SAN** | 높음 | 중간 | 높음 | 높음 |
+| **FC-SAN** | 매우 높음 | 높음 | 높음 | 높음 |
+
+---
+
+## 주요 학습 포인트
+
+### 핵심 개념 정리
+
+1. **스토리지 분류**
+   - 위치: 로컬 vs 외부
+   - 연결: 직접 연결 vs 네트워크 연결
+
+2. **프로토콜 이해**
+   - 파일 레벨: NFS, SMB/CIFS, AFP
+   - 블록 레벨: FC, iSCSI
+
+3. **성능과 비용의 트레이드오프**
+   - 고성능 = 고비용 (FC-SAN)
+   - 중간 성능 = 중간 비용 (IP-SAN, NAS)
+   - 기본 성능 = 저비용 (로컬, DAS)
+
+### 실무 적용 팁
+
+💡 **선택 기준**
+- **예산이 제한적**: 로컬 스토리지 → DAS → NAS 순으로 고려
+- **성능이 중요**: FC-SAN → IP-SAN → DAS 순으로 고려  
+- **확장성이 중요**: SAN → NAS → DAS 순으로 고려
+- **관리 편의성**: NAS → IP-SAN → FC-SAN 순으로 고려
+
+### 관련 참고 자료
+
+- [SCSI Commands Reference Guide](https://www.t10.org/)
+- [NFS Protocol Specification](https://tools.ietf.org/html/rfc7530)
+- [iSCSI Protocol Guide](https://tools.ietf.org/html/rfc7143)
+- [Fibre Channel Standards](https://www.fibrechannel.org/)
+
+---
+
+*본 문서는 인프라 & 전체 적인 서버 시스템의 기본 개념을 다룹니다.*

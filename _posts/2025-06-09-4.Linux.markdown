@@ -1,0 +1,550 @@
+---
+layout: post
+title:  "리눅스 개요와 설치"
+date:   2025-06-09 11:30 +0900
+categories: Linux OS
+---
+
+.
+
+# Linux 기초 및 서버 구축 완전 가이드
+
+## 목차 (Table of Contents)
+- [리눅스 개요](#리눅스-개요)
+- [리눅스 배포판 설치](#리눅스-배포판-설치)
+- [Rocky Linux 서버 구성](#rocky-linux-서버-구성)
+- [Ubuntu 서버 구성](#ubuntu-서버-구성)
+- [SSH 개요 및 설정](#ssh-개요-및-설정)
+- [쉘 스크립트 예제](#쉘-스크립트-예제)
+- [부록: 시스템 관리](#부록-시스템-관리)
+
+---
+
+## 리눅스 개요
+
+### Linux란?
+**리눅스(Linux)는 오픈 소스 운영 체제(OS)** 중 하나로, 컴퓨터 하드웨어와 소프트웨어 리소스를 관리하고 사용자와 프로그램 간의 인터페이스를 제공합니다.
+
+리눅스는 **UNIX 운영 체제**에서 영향을 받아 개발된 운영 체제입니다.
+
+### Linux 커널
+**Linux 커널**은 Linux의 주요 구성 요소이자 **컴퓨터 하드웨어와 프로세스를 잇는 핵심 인터페이스**입니다.
+
+![Linux 커널 구조](/assets/Images/4.Linux/image.png)
+*Linux 커널의 구조와 계층*
+
+### 커널의 주요 기능
+
+#### 1. 프로세스 관리
+- **프로세스 생성 및 종료**: 응용 프로그램 실행 시 프로세스를 생성하고, 종료 시 프로세스를 제거
+- **프로세스 스케줄링**: CPU 시간을 각 프로세스에 적절하게 분배하여 여러 프로그램이 동시에 실행
+- **프로세스 간 통신**: 프로세스들이 서로 데이터를 주고받을 수 있도록 지원
+
+#### 2. 메모리 관리
+- **메모리 할당 및 해제**: 각 프로세스에 필요한 메모리 공간을 할당하고, 더 이상 사용하지 않는 메모리 공간을 회수
+- **가상 메모리**: 실제 메모리 용량보다 큰 메모리 공간을 사용하는 것처럼 보이게 하여 효율적인 메모리 관리 구현
+
+#### 3. 파일 시스템 관리
+- **파일 및 디렉토리 관리**: 파일 및 디렉토리 생성, 삭제, 수정 등의 작업 수행
+- **파일 접근 권한 관리**: 파일 및 디렉토리에 대한 접근 권한을 설정하여 보안 유지
+- **다양한 파일 시스템 지원**: ext4, ext3, XFS 등 다양한 파일 시스템 지원
+
+#### 4. 장치 관리
+- **장치 드라이버**: 하드웨어 장치와 통신하기 위한 소프트웨어인 장치 드라이버 관리
+- **입출력 관리**: 키보드, 마우스, 프린터 등 다양한 장치로부터의 입출력 처리
+
+#### 5. 네트워크 관리
+- **네트워크 프로토콜**: TCP/IP 등 다양한 네트워크 프로토콜 지원
+- **네트워크 통신**: 네트워크를 통해 다른 컴퓨터와 데이터를 주고받을 수 있도록 지원
+
+---
+
+## 리눅스 배포판 설치
+
+### 주요 Linux 배포판
+
+#### Ubuntu (데비안 계열)
+- **다운로드**: [Ubuntu 공식 사이트](https://ubuntu.com/download/desktop)
+- **패키지 관리자**: `apt` (Advanced Package Tool)
+- **특징**: 사용자 친화적, 데스크톱 환경 우수
+
+#### Rocky Linux (Red Hat 계열)
+- **다운로드**: [Rocky Linux 공식 사이트](https://rockylinux.org/ko-KR/download)
+- **패키지 관리자**: `dnf` (Dandified YUM)
+- **특징**: 엔터프라이즈급 안정성, RHEL 호환
+
+### 가상화 솔루션
+**VMware Workstation 17 Pro** - [Broadcom Inc](https://www.broadcom.com/)
+
+### 설치 프로세스
+
+#### 1. 새 가상 머신 생성
+
+<img src="/assets/Images/4.Linux/image 1.png" width="200">
+
+*VMware 시작 화면*
+
+1. `Create a New Virtual Machine`을 클릭하여 새로운 가상 머신 OS 생성
+
+#### 2. ISO 파일 및 하드웨어 설정
+
+<img src="/assets/Images/4.Linux/image 2.png" width="500">
+
+*가상 머신 설정 화면*
+
+2. Ubuntu 또는 Rocky Linux의 ISO 파일을 지정하고 **본인의 PC 여유 메모리에 따라 설정**
+   - **권장 사양**: RAM 4GB, CPU 2Core
+   - `Finish`를 눌러 OS 설치 진행
+
+<img src="/assets/Images/4.Linux/image 3.png" width="600">
+
+*하드웨어 사양 설정*
+
+#### 3. 네트워크 환경 설정
+
+원하는 네트워크 환경에 따라 다음 중 선택:
+
+| 네트워크 모드 | 설명 | 특징 |
+|--------------|------|------|
+| **Host-Only** | 외부와 단절된 내부 네트워크 | `구성된 가상머신들끼리만 통신 가능` |
+| **NAT** | 호스트PC에서 IP 할당 | `가상머신이 자체 DHCP서버 활성화하여 내부 네트워크 대역 할당` |
+| **Bridge** | 공유기에서 IP 할당 | `호스트PC와 동일한 네트워크 대역의 IP 할당` |
+
+---
+
+## Rocky Linux 서버 구성
+
+### 초기 설정
+
+<img src="/assets/Images/4.Linux/image 4.png" width="600">
+
+*Rocky Linux 설치 화면*
+
+#### 주요 설정 항목
+- **Root Password**: 최상위 관리자 계정의 비밀번호 설정
+- **User Creation**: 실제 사용자의 계정과 비밀번호 설정
+- **Installation Destination**: OS를 설치할 디스크 설정
+
+> **중요**: Root 계정은 시스템을 관리할 수 있는 **관리자 권한의 계정**입니다.
+
+### 네트워크 설정 (nmtui)
+
+**nmtui** (NetworkManager Text User Interface)는 CLI 환경에서 네트워크를 설정하는 도구입니다.
+
+<img src="/assets/Images/4.Linux/image 5.png" width="300">
+
+*nmtui 메인 메뉴*
+
+#### nmtui 메뉴 구성
+- **Edit a connection**: IPv4, IPv6, DHCP, 이더넷, DNS 서버, 게이트웨이 등 네트워크 정보 설정
+- **Activate a connection**: 설정한 이더넷들을 활성화할지 설정
+- **Set system hostname**: PC의 호스트 네임 설정
+- **Radio**: 무선 WiFi, 무선 WAN 설정
+
+<img src="/assets/Images/4.Linux/image 6.png" width="550">
+
+*네트워크 연결 설정*
+
+### SSH 서버 설정
+
+Rocky Linux에는 기본적으로 **SSH 서버와 SSH 클라이언트가 설치**되어 있어, 별도 패키지 설치 없이 SSH 프로토콜을 통해 원격 접속이 가능합니다.
+
+### 패키지 관리
+
+**dnf**는 **Dandified YUM**의 약자로, RPM 기반 리눅스 배포판에서 소프트웨어 패키지를 관리하는 패키지 관리자입니다.
+
+```bash
+# 패키지 업데이트
+dnf update
+
+# 패키지 설치
+dnf install package_name
+
+# 패키지 검색
+dnf search keyword
+```
+
+<img src="/assets/Images/4.Linux/image 7.png" width="650">
+
+*VMnet8 네트워크 설정*
+
+포트 포워딩을 통해 가상 OS의 22번 포트로 SSH 프로토콜 통신이 가능합니다.
+
+> **참고**: SSH 포트는 `/etc/ssh/sshd_config` 파일에서 변경 가능합니다.
+
+---
+
+## Ubuntu 서버 구성
+
+### 초기 설정
+
+<img src="/assets/Images/4.Linux/image 8.png" width="650">
+
+*Ubuntu 설치 화면*
+
+#### Ubuntu 특징
+- 일반 사용자 계정, 사용자 패스워드 먼저 설정
+- **보안상의 이유로 root 계정 사용을 지양**하여 root 계정 비밀번호가 초기 설정되지 않음
+- SSH 서버와 SSH 클라이언트가 기본 설치되지 않음
+
+### SSH 서버 설치 및 설정
+
+Ubuntu에서 SSH를 사용하기 위해서는 다음 과정이 필요합니다:
+
+```bash
+# root 계정으로 전환
+sudo -i
+
+# root 계정 비밀번호 설정
+passwd root
+
+# 패키지 목록 업데이트
+apt update
+
+# SSH 서버 및 클라이언트 설치
+apt install openssh-server openssh-client -y
+
+# SSH 서비스 부팅 시 자동 시작 및 즉시 실행
+systemctl enable --now ssh
+
+# CLI 기반 다중 사용자 모드로 기본 설정
+systemctl set-default multi-user.target
+
+# 현재 세션을 다중 사용자 모드로 전환
+systemctl isolate multi-user.target
+
+# 호스트 이름 설정
+hostnamectl set-hostname server21.example.com
+```
+
+### 패키지 관리
+
+**apt**는 **Advanced Package Tool**의 약자로, 데비안 계열 리눅스 배포판에서 소프트웨어 패키지를 관리하는 도구입니다.
+
+```bash
+# 패키지 목록 업데이트
+apt update
+
+# 시스템 업그레이드
+apt upgrade
+
+# 패키지 설치
+apt install package_name
+
+# 패키지 제거
+apt remove package_name
+
+# 불필요한 패키지 정리
+apt autoremove
+```
+
+---
+
+## SSH 개요 및 설정
+
+### SSH (Secure Shell)란?
+
+**SSH(Secure Shell)**는 네트워크를 통해 다른 컴퓨터에 안전하게 접속하고 명령을 실행하거나 파일을 전송할 수 있도록 하는 프로토콜입니다.
+
+### SSH의 특징
+
+#### 보안성
+- 데이터를 **암호화하여 전송**하기 때문에 네트워크 상에서 도청이나 데이터 변조의 위험을 줄임
+- **공개키 암호화 방식** 사용
+
+#### 원격 접속
+- 인터넷을 통해 **원격지에 있는 컴퓨터에 접속**하여 작업 수행 가능
+- **클라이언트-서버 모델** 사용
+
+#### 다양한 기능
+- 원격 로그인
+- 파일 전송
+- 포트 포워딩
+
+### SSH 작동 방식
+
+1. **클라이언트-서버 모델**: SSH 클라이언트 프로그램이 SSH 서버에 접속하여 작업 수행
+2. **암호화**: 공개키 암호화 방식을 사용하여 데이터 암호화
+3. **인증**: 비밀번호 인증 또는 공개키 인증 방식을 사용하여 사용자 인증
+
+### SSH 활용 분야
+
+| 분야 | 설명 | 예시 |
+|------|------|------|
+| **서버 관리** | 원격으로 서버에 접속하여 작업 수행 | 클라우드 서버 관리 |
+| **파일 전송** | 안전하게 파일 전송 | SCP, SFTP 사용 |
+| **원격 접속** | 다양한 용도의 원격 접속 | 재택근무 시 회사 서버 접속 |
+
+### SSH 관련 용어
+
+- **SSH 클라이언트**: SSH 서버에 접속하는 프로그램 (예: PuTTY, Terminal)
+- **SSH 서버**: SSH 클라이언트의 접속을 받아들이는 프로그램 (예: OpenSSH Server)
+- **공개키**: SSH 인증에 사용되는 키 쌍 중 하나로, 다른 사람에게 공개해도 안전
+- **개인키**: SSH 인증에 사용되는 키 쌍 중 다른 하나로, 안전하게 보관해야 함
+
+### SSH의 장점
+
+> - SSH는 **Telnet**과 같은 기존의 원격 접속 프로토콜보다 보안성이 뛰어남
+> - 다양한 운영체제에서 사용 가능
+> - 웹 브라우저를 통해서도 사용 가능 (SSH 웹 클라이언트)
+
+---
+
+## 쉘 스크립트 예제
+
+### 사용자 관리 스크립트
+
+Linux 유저 리스트 확인, 유저 생성, 유저 삭제 기능을 포함한 **종합 사용자 관리 스크립트** 예제입니다.
+
+```bash
+#!/bin/bash
+
+cat<<END
+now user name : $(whoami)
+=========================================
+Please select a number
+-----------------------------------------
+1 : Check the user list
+2 : Add user
+3 : Delete user
+4 : Exit (or ctrl+c)
+-----------------------------------------
+END
+
+while true :
+do
+    echo -n "number : "
+    read number
+    # 1 : 전체 유저 리스트 확인, 2 : 유저 생성, 3 : 유저 삭제, 4 : 스크립트 종료
+    case $number in
+        # 전체 유저 리스트 확인
+        1) users=($(cat /etc/passwd | grep /bin/bash | cut -d: -f1))
+           for i in "${!users[@]}"; do
+               echo "user-number : $((i+1)), username : ${users[i]}"
+           done;;
+
+        # 유저 생성 
+        2) echo -n "Please input new user : "; read username
+           if(getent passwd $username &> /dev/null); then
+               echo "exist is $username... "
+           else
+               sudo useradd -m -s /bin/bash $username
+           fi;;
+
+        # 유저 삭제
+        3) users=($(cat /etc/passwd | grep /bin/bash | cut -d: -f1))
+           for i in "${!users[@]}"; do
+               echo "user-number : $((i+1)), username : ${users[i]}"
+           done
+           echo -n "please, enter the user number, you wish to delete "; read usernumber; ((usernumber--))
+           delUserName=${users[$usernumber]}
+           if [[ $delUserName != "ubuntu" && $delUserName != "root" ]]; then
+               if ((0 <= usernumber)) && ((usernumber < ${#users[@]})); then
+                   sudo userdel -r $delUserName &> /dev/null
+                   if getent passwd "$username" > /dev/null; then
+                       echo "Failed to delete user : $delUserName"
+                   else
+                       echo "User '$delUserName' successfully deleted."
+                   fi
+               else
+                   echo "incorrect to input user number data. Please, retry...!!!!"
+               fi
+           else
+               echo "Don't Delete User root & ubuntu"
+           fi;;
+
+        # 쉘 스크립트 종료 
+        4) echo "Let you close the user editor process. good-bye~_~"; exit 0;;
+
+        # 번호가 아닌 다른 데이터 입력 시 안내. 
+        *) echo "Incorrect input number data. Please, correct input number (1~4)...!!!!";;
+    esac
+done
+echo "Let you close the user editor process. good-bye"
+```
+
+### 스크립트 주요 기능 설명
+
+#### 1. 사용자 목록 확인
+```bash
+users=($(cat /etc/passwd | grep /bin/bash | cut -d: -f1))
+```
+- `/etc/passwd` 파일에서 bash 쉘을 사용하는 사용자만 추출
+- 배열로 저장하여 인덱스 번호와 함께 출력
+
+#### 2. 사용자 생성
+```bash
+sudo useradd -m -s /bin/bash $username
+```
+- `-m`: 홈 디렉토리 자동 생성
+- `-s /bin/bash`: 기본 쉘을 bash로 설정
+
+#### 3. 사용자 삭제
+```bash
+sudo userdel -r $delUserName
+```
+- `-r`: 홈 디렉토리와 메일 스풀도 함께 삭제
+- 시스템 계정(root, ubuntu) 삭제 방지 로직 포함
+
+### 스크립트 실행 방법
+
+```bash
+# 스크립트 파일에 실행 권한 부여
+chmod +x user_management.sh
+
+# 스크립트 실행
+./user_management.sh
+```
+
+---
+
+## 부록: 시스템 관리
+
+### 런레벨 (Runlevel) 이해
+
+**런레벨**은 Linux 시스템의 동작 모드를 정의하는 개념입니다.
+
+| Runlevel | 이름 | 설명 | 특징 |
+|----------|------|------|------|
+| **0** | Halt | 시스템 중지 | 기본값으로 설정 불가 |
+| **1** | Single user mode | 단일 사용자 모드 | - 로그인 과정 없이 root 계정으로 로그온<br>- 네트워크, 서버, 파일 공유 등 서비스 사용 안함<br>- 시스템 점검/복구, root 패스워드 초기화에 사용 |
+| **2** | Multiuser, without NFS | 네트워크를 사용하지 않는 다중 사용자 모드 | - 여러 계정으로 로그온 가능<br>- Runlevel 3에서 네트워크를 제외한 것과 동일 |
+| **3** | Full multiuser mode | 네트워크를 지원하는 다중 사용자 모드 | 완전한 다중 사용자 환경 |
+| **4** | Unused | 사용되지 않는 런레벨 | 사용자가 정의해서 사용 가능 |
+| **5** | X11 | X Window를 사용하는 다중 사용자 모드 | - 그래픽 인터페이스<br>- 최근 배포판에서 기본값으로 사용 |
+| **6** | Reboot | 시스템 재기동 | 기본값으로 설정 불가 |
+
+### 런레벨 관련 명령어
+
+```bash
+# 현재 런레벨 확인
+runlevel
+
+# 기본 런레벨을 다중 사용자 모드로 설정
+systemctl set-default multi-user.target
+
+# 기본 런레벨을 그래픽 모드로 설정
+systemctl set-default graphical.target
+
+# 즉시 런레벨 변경
+systemctl isolate multi-user.target
+```
+
+### 호스트명 관리
+
+**hostname**은 Linux OS PC를 식별하는데 사용되는 이름입니다.
+
+```bash
+# 현재 호스트명 확인
+hostname
+
+# 호스트명 변경
+hostnamectl set-hostname new-hostname
+
+# 호스트명 상세 정보 확인
+hostnamectl status
+```
+
+### 시스템 서비스 관리
+
+```bash
+# 서비스 상태 확인
+systemctl status service_name
+
+# 서비스 시작
+systemctl start service_name
+
+# 서비스 중지
+systemctl stop service_name
+
+# 서비스 재시작
+systemctl restart service_name
+
+# 부팅 시 자동 시작 설정
+systemctl enable service_name
+
+# 부팅 시 자동 시작 해제
+systemctl disable service_name
+
+# 즉시 시작하고 부팅 시 자동 시작 설정
+systemctl enable --now service_name
+```
+
+---
+
+## 🔑 핵심 학습 포인트
+
+### Linux 기본 개념
+1. **커널의 역할**: 하드웨어와 소프트웨어 간의 핵심 인터페이스
+2. **배포판 차이**: 데비안 계열(Ubuntu) vs Red Hat 계열(Rocky Linux)
+3. **패키지 관리**: apt(데비안) vs dnf(Red Hat)
+
+### 서버 관리 필수 지식
+1. **SSH 프로토콜**: 안전한 원격 접속의 핵심
+2. **사용자 관리**: 계정 생성, 삭제, 권한 관리
+3. **네트워크 설정**: 정적/동적 IP 할당, DNS 설정
+
+### 실무 활용 팁
+1. **보안**: root 계정 직접 사용 지양, SSH 키 인증 활용
+2. **자동화**: 쉘 스크립트를 통한 반복 작업 자동화
+3. **모니터링**: 시스템 상태 및 로그 관리
+
+### 📊 배포판 비교표
+
+| 구분 | Ubuntu | Rocky Linux |
+|------|--------|-------------|
+| **계열** | 데비안 | Red Hat |
+| **패키지 관리자** | apt | dnf |
+| **기본 쉘** | bash | bash |
+| **SSH 서버** | 별도 설치 | 기본 설치 |
+| **Root 계정** | 비활성화 | 활성화 |
+| **사용 환경** | 데스크톱/서버 | 엔터프라이즈 서버 |
+
+### 🛠️ 실습 체크리스트
+
+- [ ] VMware에서 Linux 가상머신 설치
+- [ ] 네트워크 설정 (정적 IP 할당)
+- [ ] SSH 서버 설치 및 설정
+- [ ] 사용자 계정 생성 및 관리
+- [ ] 쉘 스크립트 작성 및 실행
+- [ ] 시스템 서비스 관리
+- [ ] 런레벨 이해 및 설정
+
+### 📚 추가 학습 권장 사항
+
+#### 심화 학습 주제
+1. **시스템 보안**: 방화벽, SELinux, AppArmor
+2. **네트워크 서비스**: Apache, Nginx, DNS 서버
+3. **데이터베이스**: MySQL, PostgreSQL 설치 및 관리
+4. **컨테이너**: Docker, Podman 활용
+5. **자동화**: Ansible, Terraform을 통한 인프라 관리
+
+#### 인증 및 자격증
+- **Linux Professional Institute (LPI)**: LPIC-1, LPIC-2
+- **Red Hat**: RHCSA, RHCE
+- **CompTIA**: Linux+
+
+#### 실습 환경 확장
+- **클라우드 플랫폼**: AWS EC2, Google Cloud Compute Engine
+- **가상화**: KVM, Xen, VirtualBox
+- **오케스트레이션**: Kubernetes, Docker Swarm
+
+---
+
+## 요약
+
+이 가이드는 Linux의 기초 개념부터 실제 서버 구축 및 관리까지의 전 과정을 다루고 있습니다. 특히 **Ubuntu와 Rocky Linux** 두 주요 배포판의 차이점과 각각의 특성을 이해하는 것이 중요합니다.
+
+> **핵심 메시지**: Linux는 단순한 운영체제가 아니라, **현대 IT 인프라의 기반**이 되는 핵심 기술입니다. 체계적인 학습과 꾸준한 실습을 통해 전문성을 키워나가시기 바랍니다.
+
+### 다음 단계 로드맵
+
+1. **기초 완성**: 명령어 숙달, 파일 시스템 이해
+2. **서버 관리**: 웹 서버, 데이터베이스 서버 구축
+3. **네트워크 관리**: 방화벽, VPN, 로드 밸런서 설정
+4. **자동화**: 스크립팅, 설정 관리 도구 활용
+5. **클라우드**: 퍼블릭 클라우드 서비스 연동
+
+---
+
+*이 문서는 Linux 학습을 위한 종합 가이드입니다.*
