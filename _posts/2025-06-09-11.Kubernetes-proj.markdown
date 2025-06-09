@@ -1,0 +1,1185 @@
+---
+layout: post
+title:  "Kubernetes의 개요부터 설치 및 실습"
+date:   2025-06-09 17:44 +0900
+categories: kubernetes proj 
+---
+
+.
+
+# Kubernetes EKS 프로젝트 구축
+
+## 목차
+- [기본 아키텍처](#기본-아키텍처)
+- [VPC 구축 및 EKS 생성](#vpc-구축-및-eks-생성)
+- [EKS Pod 설치 및 이미지 빌드 (기본 3-Tier 구축)](#eks-pod-설치-및-이미지-빌드-기본-3-tier-구축)
+- [EKS 추가 서비스](#eks-추가-서비스)
+
+## 기본 아키텍처
+
+![EKS 아키텍처](/assets/Images/11.Kubernetes-proj/EKS-아키텍쳐의_복사본.drawio.png)
+
+## VPC 구축 및 EKS 생성
+
+### 1. VPC 생성
+
+![VPC 생성 1](/assets/Images/11.Kubernetes-proj/image.png)
+![VPC 생성 2](/assets/Images/11.Kubernetes-proj/image%201.png)
+![VPC 생성 3](/assets/Images/11.Kubernetes-proj/image%202.png)
+
+### 2. EC2 - Bastion 1대
+
+![Bastion EC2 1](/assets/Images/11.Kubernetes-proj/image%203.png)
+![Bastion EC2 2](/assets/Images/11.Kubernetes-proj/image%204.png)
+
+### 3. EC2 - mgmt ec2 생성
+
+![mgmt EC2 1](/assets/Images/11.Kubernetes-proj/image%205.png)
+![mgmt EC2 2](/assets/Images/11.Kubernetes-proj/image%206.png)
+
+### 4. mobaXterm SSH 연결 (mgmt-ec2)
+
+![SSH 연결](/assets/Images/11.Kubernetes-proj/image%207.png)
+
+### 5. 역할 생성 (IAM)
+
+#### a. EKS-WorkerNode-Role
+IAM > 역할 > 역할 만들기 > EC2 > 사용 사례 선택 - EC2
+
+![WorkerNode Role](/assets/Images/11.Kubernetes-proj/image%208.png)
+
+#### b. EKS-ControlPlane-Role
+IAM > 역할 > 역할 만들기 > EKS > 사용 사례 선택 - EKS Cluster
+
+![ControlPlane Role](/assets/Images/11.Kubernetes-proj/image%209.png)
+
+### 6. 액세스 키 생성
+
+우측 위 보안 자격 증명 - 액세스 키 - CLI 명령 생성
+
+![액세스 키 1](/assets/Images/11.Kubernetes-proj/image%2010.png)
+![액세스 키 2](/assets/Images/11.Kubernetes-proj/image%2011.png)
+
+### 7. AWS Control Plane 접속
+
+#### a. timedatectl 설정
+
+```bash
+sudo -i
+timedatectl set-timezone Asia/Seoul
+```
+
+#### b. aws configure
+
+```json
+# aws configure
+AWS Access Key ID [None]: [AWS Access Key ID]
+AWS Secret Access Key [None]: [AWS Secret Access Key ID]
+Default region name [None]: ap-northeast-2
+Default output format [None]: json
+```
+
+#### c. eksctl 설치
+
+```bash
+curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | sudo tar xz -C /tmp
+sudo mv /tmp/eksctl /usr/local/bin
+eksctl version
+```
+
+#### d. kubectl 설치
+
+```bash
+curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.17.9/2020-08-04/bin/linux/amd64/kubectl
+sudo chmod +x ./kubectl
+sudo mv ./kubectl /usr/local/bin
+sudo kubectl version --short --client
+```
+
+#### e. 클러스터 생성을 위한 eks-cluster.yaml 파일 작성
+
+**⚠️ 밑줄 친 부분은 본인이 만든 VPC-ID, cidr, 계정 ID로 설정하셔야 합니다.**
+
+```yaml
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: NRSON-EKS-CLUSTER
+  region: ap-northeast-2
+  
+vpc:
+  id: "vpc-0a9733dffd78d86d9"
+  cidr: "10.0.0.0/16"
+  subnets:
+    private:
+      ap-northeast-2a:
+        id: "subnet-00120d56e8f9df873"
+        cidr: "10.0.64.0/20"
+      ap-northeast-2b:
+        id: "subnet-00bb6d71569c85d2a"
+        cidr: "10.0.80.0/20"
+  nat:
+    gateway: Disable
+  clusterEndpoints:
+    publicAccess: false
+    privateAccess: true
+
+iam:
+  withOIDC: true
+  serviceRoleARN: "arn:aws:iam::{user_id}:role/EKS-ControlPlane-Role"
+
+managedNodeGroups:
+  - name: EKS-NODE
+    instanceType: m5.large
+    minSize: 2
+    desiredCapacity: 2
+    maxSize: 4
+    availabilityZones: ["ap-northeast-2a", "ap-northeast-2b"]
+    volumeSize: 30
+    privateNetworking: true
+    ssh:
+      allow: false
+    labels: { role: worker }
+    iam:
+      instanceRoleARN: "arn:aws:iam::{user_id}:role/EKS-WORKERNODE-ROLE"
+```
+
+#### f. eksctl create
+
+```bash
+sudo eksctl create cluster -f eks-cluster.yaml
+```
+
+#### g. 보안 그룹 변경
+
+**eksctl-NRSON-EKS-CLUSTER-cluster/ControlPlaneSecurityGroup**
+
+**Inbound 규칙 추가**
+
+![보안 그룹 변경](/assets/Images/11.Kubernetes-proj/image%2012.png)
+
+#### h. 완료 후 kubectl alias 등록
+
+```bash
+yum install bash-completion -y
+source <(kubectl completion bash)
+echo "source <(kubectl completion bash)" >> $HOME/.bashrc
+
+alias k=kubectl
+complete -o default -F __start_kubectl k
+echo "alias k=kubectl" >> ~/.bashrc
+echo "complete -o default -F __start_kubectl k" >> ~/.bashrc
+
+source ./.bashrc
+```
+
+#### i. 노드 확인
+
+```bash
+# k get nodes
+NAME                                             STATUS   ROLES    AGE   VERSION
+ip-10-0-67-204.ap-northeast-2.compute.internal   Ready    <none>   22m   v1.32.3-eks-473151a
+ip-10-0-83-201.ap-northeast-2.compute.internal   Ready    <none>   22m   v1.32.3-eks-473151a
+```
+
+## EKS Pod 설치 및 이미지 빌드 (기본 3-Tier 구축)
+
+### DB 설치
+
+#### 1. DB 보안 그룹 생성
+
+![DB 보안 그룹](/assets/Images/11.Kubernetes-proj/image%2013.png)
+
+#### 2. DB 서브넷 그룹 생성
+
+새로 Private Subnet 생성해서 하거나, 기존 워커노드 그룹에 생성
+
+![DB 서브넷 그룹](/assets/Images/11.Kubernetes-proj/image%2014.png)
+
+#### 3. RDS 생성 (MySQL)
+
+![RDS 생성](/assets/Images/11.Kubernetes-proj/image%2015.png)
+
+#### 4. DB 템플릿, 가용 영역 선택
+
+![DB 템플릿](/assets/Images/11.Kubernetes-proj/image%2016.png)
+
+#### 5. Database 마스터 사용자 계정, 비밀번호 설정
+
+![DB 계정 설정](/assets/Images/11.Kubernetes-proj/image%2017.png)
+
+#### 6. 인스턴스 구성
+
+![인스턴스 구성](/assets/Images/11.Kubernetes-proj/image%2018.png)
+
+#### 7. 스토리지 설정 (20 GB)
+
+![스토리지 설정](/assets/Images/11.Kubernetes-proj/image%2019.png)
+
+#### 8. 연결 (Network)
+
+![네트워크 연결 1](/assets/Images/11.Kubernetes-proj/image%2020.png)
+![네트워크 연결 2](/assets/Images/11.Kubernetes-proj/image%2021.png)
+
+#### 9. 엔드포인트, 마스터 ID, 마스터 패스워드 저장
+
+**⚠️ 본인 RDS 설정으로 하셔야 합니다**
+
+- **엔드포인트**: `doitmysql.cblfmzidovrx.ap-northeast-2.rds.amazonaws.com`
+- **마스터 ID**: `petclinicadmin`
+- **마스터 PW**: `Pa$$w0rd2025`
+
+### Web 설치
+
+#### 1. mod proxy 설정 파일 생성
+
+```bash
+mkdir ~/httpd
+cd ~/httpd
+vi httpd.conf
+```
+
+```apache
+LoadModule proxy_module modules/mod_proxy.so
+LoadModule proxy_http_module modules/mod_proxy_http.so
+
+ServerName localhost
+
+ProxyRequests Off
+ProxyPreserveHost On
+
+ProxyPass /petclinic/ http://was-svc.default.svc.cluster.local:8080/petclinic/
+ProxyPassReverse /petclinic/ http://was-svc.default.svc.cluster.local:8080/petclinic/
+
+RedirectMatch ^/$ /petclinic/
+```
+
+#### 2. Dockerfile 생성
+
+```bash
+vi Dockerfile
+```
+
+```dockerfile
+FROM httpd:2.4
+
+COPY ./httpd.conf /tmp/httpd_attach.conf
+
+RUN cat /tmp/httpd_attach.conf >> /usr/local/apache2/conf/httpd.conf
+
+EXPOSE 80
+CMD ["httpd-foreground"]
+```
+
+#### 3. Docker Image 빌드
+
+```bash
+docker build -t petclinic-httpd .
+```
+
+#### 4. AWS ECR 리전, 계정 로그인
+
+**⚠️ 밑줄 친 부분 자기 ID로 변경**
+
+**⚠️ docker 명령어를 실행 할 권한을 가진 user에서 login 해야 합니다.**
+
+```bash
+aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin {user-id}.dkr.ecr.ap-northeast-2.amazonaws.com
+```
+
+#### 5. Docker ECR 레포지토리 생성
+
+```bash
+aws ecr create-repository --repository-name petclinic-httpd
+```
+
+#### 6. Docker 이미지의 태그를 변경
+
+```bash
+docker tag petclinic-httpd:latest {user-id}.dkr.ecr.ap-northeast-2.amazonaws.com/petclinic-httpd:latest
+```
+
+#### 7. Docker 이미지를 자신의 ECR에 push
+
+```bash
+docker push {user-id}.dkr.ecr.ap-northeast-2.amazonaws.com/petclinic-httpd:latest
+```
+
+#### 8. Web yaml 생성 후 배포
+
+**⚠️ 밑줄 친 부분은 자기 ECR의 URL로 수정**
+
+```bash
+vi httpd.yaml
+```
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+      - name: apache-web
+        image: {user-id}.dkr.ecr.ap-northeast-2.amazonaws.com/petclinic-httpd:latest
+        ports:
+        - containerPort: 80
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-svc
+spec:
+  type: LoadBalancer
+  selector:
+    app: web
+  ports:
+  - port: 80
+    targetPort: 80
+```
+
+```bash
+k apply -f httpd.yaml
+```
+
+### WAS 설치
+
+#### 1. JDK 설치
+
+```bash
+yum install java-11-amazon-corretto-devel -y
+yum install maven -y
+
+java --version
+# openjdk 11.0.27 2025-04-15 LTS
+# OpenJDK Runtime Environment Corretto-11.0.27.6.1 (build 11.0.27+6-LTS)
+# OpenJDK 64-Bit Server VM Corretto-11.0.27.6.1 (build 11.0.27+6-LTS, mixed mode)
+```
+
+#### 2. Java 환경 변수 설정
+
+```bash
+echo 'export JAVA_HOME=/usr/lib/jvm/java-11-amazon-corretto.x86_64/' >> ~/.bash_profile
+echo 'export PATH=$JAVA_HOME/bin:$PATH' >> ~/.bash_profile
+source ~/.bash_profile
+```
+
+#### 3. tar 파일 다운로드
+
+[petclinic_btc.tar 다운로드](/assets/Images/11.Kubernetes-proj/petclinic_btc.tar)
+
+```bash
+mkdir ~/tomcat
+cd ~/tomcat
+
+tar -xvf ~/tomcat/petclinic_btc.tar
+cd ~/tomcat/petclinic_btc
+```
+
+#### 4. pom.xml 수정
+
+```bash
+vi pom.xml
+
+# /mysql 입력 후 Enter키 입력 다음으로 n을 눌러 해당 부분까지 이동 후 Enter
+# Bold 처리 된 내용을 자신의 RDS에 맞게 수정하고 :wq로 저장 후 종료
+```
+
+```xml
+<profile>
+    <id>MySQL</id>
+        <activation>
+        <activeByDefault>true</activeByDefault>
+    </activation>
+    <properties>
+        <db.script>mysql</db.script>
+        <jpa.database>MYSQL</jpa.database>
+        <jdbc.driverClassName>com.mysql.cj.jdbc.Driver</jdbc.driverClassName>
+        <jdbc.url>jdbc:mysql://doitmysql.cblfmzidovrx.ap-northeast-2.rds.amazonaws.com:3306/petclinic?useUnicode=true</jdbc.url>
+        <jdbc.username>petclinicadmin</jdbc.username>
+        <jdbc.password>Pa$$w0rd2025</jdbc.password>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.33</version>
+            <scope>runtime</scope>
+        </dependency>
+    </dependencies>
+```
+
+#### 5. Maven 소스 빌드 후 war 파일 옮기기
+
+```bash
+mvn clean install -P MySQL
+# Build 실패 시 확인해야 할 사항:
+# 1. RDS의 엔드포인트, 마스터 ID, 패스워드 (mgmt에서 mysql client 설치 후 접속 여부 확인)
+# 2. RDS의 보안 그룹에서 3306 포트가 mgmt ec2, cluster(workerNode)의 보안 그룹으로 열려있는지
+
+mv ~/tomcat/petclinic_btc/target/petclinic.war ~/tomcat
+```
+
+#### 6. Docker 설치
+
+```bash
+yum install docker -y
+```
+
+#### 7. Dockerfile 생성
+
+```bash
+cd ~/tomcat
+vi dockerfile
+```
+
+```dockerfile
+FROM tomcat:9.0.84-jdk11
+
+COPY ./petclinic.war /usr/local/tomcat/webapps/
+
+EXPOSE 8080
+
+CMD ["catalina.sh", "run"]
+```
+
+#### 8. Docker image build
+
+```bash
+docker build -t petclinic-tomcat .
+
+docker images
+# REPOSITORY         TAG       IMAGE ID       CREATED          SIZE
+# petclinic-tomcat   latest    39505590b9a0   24 minutes ago   498MB
+```
+
+#### 9. AWS ECR 리전, 계정 로그인
+
+**⚠️ 밑줄 친 부분 자기 ID로 변경**
+
+```bash
+aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin {user-id}.dkr.ecr.ap-northeast-2.amazonaws.com
+```
+
+#### 10. ECR Repository 생성
+
+```bash
+aws ecr create-repository --repository-name petclinic-tomcat
+```
+
+#### 11. Docker 이미지의 태그를 변경
+
+```bash
+docker tag petclinic-tomcat:latest {user-id}.dkr.ecr.ap-northeast-2.amazonaws.com/petclinic-tomcat:latest
+```
+
+#### 12. Docker 이미지를 자신의 ECR에 push
+
+```bash
+docker push {user-id}.dkr.ecr.ap-northeast-2.amazonaws.com/petclinic-tomcat:latest
+```
+
+#### 13. Deployment 생성 후 pod 배포
+
+**⚠️ 밑줄 친 부분은 자기 ECR의 URL로 수정**
+
+```bash
+vi tomcat.yaml
+```
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: was
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: was
+  template:
+    metadata:
+      labels:
+        app: was
+    spec:
+      containers:
+      - name: apache-was
+        image: {user-id}.dkr.ecr.ap-northeast-2.amazonaws.com/petclinic-tomcat:latest
+        ports:
+        - containerPort: 8080
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: was-svc
+spec:
+  selector:
+    app: was
+  ports:
+  - port: 8080
+    targetPort: 8080
+  type: ClusterIP
+```
+
+```bash
+k apply -f tomcat.yaml
+```
+
+### AWS ALB 컨트롤러 설치 후 Ingress(ALB) 배포
+
+#### 1. AWS 로드 밸런서 컨트롤러의 IAM 정책 다운로드
+
+[참고 링크](https://docs.aws.amazon.com/ko_kr/eks/latest/userguide/lbc-helm.html)
+
+```bash
+cd ~/httpd
+
+curl -O https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.12.0/docs/install/iam_policy.json
+```
+
+#### 2. IAM 정책 생성
+
+```bash
+aws iam create-policy \
+    --policy-name AWSLoadBalancerControllerIAMPolicy \
+    --policy-document file://iam_policy.json
+```
+
+#### 3. 서비스 계정 생성
+
+현재 작동중인 EKS의 클러스터 이름, 리전 코드 및 계정 ID의 값을 바꿉니다.
+
+```bash
+eksctl create iamserviceaccount \
+    --cluster=NRSON-EKS-CLUSTER \
+    --namespace=kube-system \
+    --name=aws-load-balancer-controller \
+    --attach-policy-arn=arn:aws:iam::{user_id}:policy/AWSLoadBalancerControllerIAMPolicy \
+    --override-existing-serviceaccounts \
+    --region ap-northeast-2 \
+    --approve
+```
+
+#### 4. Helm 설치
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+# helm version 확인
+helm version
+```
+
+#### 5. eks-charts 차트 Helm 리포지토리 추가
+
+```bash
+helm repo add eks https://aws.github.io/eks-charts
+helm repo update eks
+```
+
+#### 6. helm을 통해 aws-load-balancer-controller 설치
+
+```bash
+helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
+  -n kube-system \
+  --set clusterName=NRSON-EKS-CLUSTER \
+  --set serviceAccount.create=false \
+  --set serviceAccount.name=aws-load-balancer-controller \
+  --set region=ap-northeast-2
+```
+
+#### 7. CRD 설치
+
+```bash
+wget https://raw.githubusercontent.com/aws/eks-charts/master/stable/aws-load-balancer-controller/crds/crds.yaml
+kubectl apply -f crds.yaml
+```
+
+#### 8. 설치 확인
+
+```bash
+kubectl get deployment aws-load-balancer-controller
+
+# NAME                           READY   UP-TO-DATE   AVAILABLE   AGE
+# aws-load-balancer-controller   2/2     2            2           4m51s
+```
+
+#### 9. 기존 web 배포 삭제 후 yaml 파일 수정
+
+**⚠️ httpd.yaml 파일 수정 시, public subnet의 id로 지정합니다.**
+
+```bash
+# yaml 파일을 통해, 기존 web 배포 제거
+kubectl delete -f httpd.yaml
+
+# yaml 파일 수정
+vi httpd.yaml
+```
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+      - name: apache-web
+        image: {user-id}.dkr.ecr.ap-northeast-2.amazonaws.com/petclinic-httpd:latest
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-svc
+  labels:
+    app: web
+spec:
+  type: NodePort
+  selector:
+    app: web
+  ports:
+    - port: 80
+      targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web-ingress
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/subnets: subnet-08abcb5f2f93ed4e1,subnet-0518bdb827ac408de
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /petclinic/
+            pathType: Prefix
+            backend:
+              service:
+                name: web-svc
+                port:
+                  number: 80
+```
+
+#### 10. 수정한 httpd.yaml 파일 배포
+
+```bash
+kubectl apply -f httpd.yaml
+```
+
+### HTTPS 설정
+
+#### 1. Route53에 도메인 추가
+
+Gabia에서 구매한 도메인을 Route53에 추가합니다.
+
+![Route53 도메인 1](/assets/Images/11.Kubernetes-proj/image%2022.png)
+![Route53 도메인 2](/assets/Images/11.Kubernetes-proj/image%2023.png)
+![Route53 도메인 3](/assets/Images/11.Kubernetes-proj/image%2024.png)
+
+#### 2. 네임서버 설정
+
+Route53에서 생성된 레코드들의 트래픽 라우팅 대상을 Gabia의 네임 서버에 추가합니다.
+
+**⚠️ 네임서버 뒤에 .을 빼고 추가합니다.**
+
+![네임서버 설정 1](/assets/Images/11.Kubernetes-proj/image%2025.png)
+![네임서버 설정 2](/assets/Images/11.Kubernetes-proj/image%2026.png)
+![네임서버 설정 3](/assets/Images/11.Kubernetes-proj/image%2027.png)
+
+#### 3. Certificate Manager에서 인증서 추가
+
+Gabia에서 구매한 도메인이 `psg-store.store`라면, 앞에 `*`을 붙여 모든 레코드에 적용시킬 수 있도록 합니다. (`*.psg-store.store`)
+
+![인증서 추가 1](/assets/Images/11.Kubernetes-proj/image%2028.png)
+![인증서 추가 2](/assets/Images/11.Kubernetes-proj/image%2029.png)
+
+#### 4. 인증서를 Route53에 CNAME으로 추가
+
+![CNAME 추가 1](/assets/Images/11.Kubernetes-proj/image%2030.png)
+![CNAME 추가 2](/assets/Images/11.Kubernetes-proj/image%2031.png)
+
+#### 5. Route 53에 CNAME 레코드 확인
+
+![CNAME 레코드 확인](/assets/Images/11.Kubernetes-proj/image%2032.png)
+
+#### 6. Certificate ARN 복사
+
+리스너에 인증서를 연결하기 위해, 본인의 Certificate ARN의 정보를 복사합니다.
+
+![Certificate ARN](/assets/Images/11.Kubernetes-proj/image%2033.png)
+
+#### 7. ALB yaml 파일에 SSL 설정 추가
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+      - name: apache-web
+        image: 701232040686.dkr.ecr.ap-northeast-2.amazonaws.com/petclinic-httpd:latest
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-svc
+  labels:
+    app: web
+spec:
+  type: NodePort
+  selector:
+    app: web
+  ports:
+    - port: 80
+      targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web-ingress
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-2:{user_id}:certificate/{certificate-id}
+    alb.ingress.kubernetes.io/ssl-redirect: '443'
+    alb.ingress.kubernetes.io/subnets: subnet-08abcb5f2f93ed4e1,subnet-0518bdb827ac408de
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /petclinic/
+            pathType: Prefix
+            backend:
+              service:
+                name: web-svc
+                port:
+                  number: 80
+```
+
+#### 8. 인증서 검증 완료 확인
+
+Apply 하기 전 주의 사항
+
+**⚠️ 반드시 해당 상태가 검증 완료되어야 합니다.**
+
+![인증서 검증](/assets/Images/11.Kubernetes-proj/image%2034.png)
+
+#### 9. Pod 배포
+
+```bash
+k apply -f httpd.yaml
+```
+
+#### 10. Route 53 레코드 생성
+
+![Route 53 레코드](/assets/Images/11.Kubernetes-proj/image%2035.png)
+
+## EKS 추가 서비스
+
+### 프로메테우스 설치
+
+#### 1. 클러스터와 IAM OIDC provider 연결
+
+```bash
+eksctl utils associate-iam-oidc-provider --cluster=NRSON-EKS-CLUSTER --approve
+```
+
+#### 2. EBS AddOn을 위한 ServiceAccount 생성 및 권한 부여
+
+```bash
+eksctl create iamserviceaccount \
+  --region ap-northeast-2 \
+  --namespace kube-system \
+  --cluster NRSON-EKS-CLUSTER \
+  --name ebs-csi-controller-sa \
+  --role-name EKS-Addon-EBS-Role \
+  --attach-policy-arn arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy \
+  --approve \
+  --role-only
+```
+
+#### 3. EBS Addon 생성
+
+위에서 생성된 IAM 계정의 ARN으로 설정합니다.
+
+```bash
+eksctl create addon \
+--name aws-ebs-csi-driver \
+--cluster NRSON-EKS-CLUSTER \
+--service-account-role-arn arn:aws:iam::{user_id}:role/EKS-Addon-EBS-Role \
+--force
+```
+
+#### 4. EBS-CSI-DRIVER 확인
+
+```bash
+eksctl get addon --name aws-ebs-csi-driver --cluster NRSON-EKS-CLUSTER
+```
+
+#### 5. 작업 디렉토리 생성
+
+```bash
+mkdir ~/prometheus
+cd ~/prometheus
+```
+
+#### 6. Helm 설치 여부와 버전 확인
+
+3.xx 이상이면 됩니다.
+
+```bash
+helm version
+```
+
+#### 7. Prometheus 네임스페이스 생성
+
+```bash
+kubectl create ns monitoring
+```
+
+#### 8. Helm에 prometheus-community 저장소 추가
+
+```bash
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+```
+
+#### 9. 저장소 추가 확인
+
+```bash
+helm repo list
+```
+
+#### 10. 저장소 업데이트
+
+```bash
+helm repo update prometheus-community
+```
+
+#### 11. Git을 통해 helm-chart 받아오기
+
+helm install command를 통해 바로 설치해도 좋습니다. 실제 구성이 어떻게 됐는지 궁금해서 git으로 helm-charts로 다운받고 해봤습니다.
+
+**⚠️ git command not found라면, git 패키지를 설치합니다 (AMI-Linux 기준)**
+
+```bash
+git clone https://github.com/prometheus-community/helm-charts
+
+yum install git-daemon.x86_64
+```
+
+#### 12. Prometheus values.yaml 수정
+
+Prometheus의 Pod들을 관리할 Service를 NodePort로 변경합니다.
+storageClass를 찾아서 "gp2" or "gp3"를 지정해야 합니다.
+
+```bash
+vi ~/prometheus/helm-charts/charts/prometheus/values.yaml
+```
+
+![Prometheus values 수정 1](/assets/Images/11.Kubernetes-proj/image%2036.png)
+![Prometheus values 수정 2](/assets/Images/11.Kubernetes-proj/image%2037.png)
+![Prometheus values 수정 3](/assets/Images/11.Kubernetes-proj/image%2038.png)
+
+#### 13. Prometheus 설치
+
+서비스의 Type을 변경했다면, Prometheus의 설치를 진행합니다.
+
+```bash
+helm install prometheus prometheus-community/prometheus -f ~/prometheus/helm-charts/charts/prometheus/values.yaml -n monitoring
+```
+
+#### 14. Helm 배포 확인
+
+status가 deployed인지 확인합니다.
+
+```bash
+helm list
+# NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
+# prometheus      default         1               2025-05-28 17:32:45.273836232 +0900 KST deployed        prometheus-27.16.0      v3.4.0
+```
+
+#### 15. 배포한 서비스들의 상태 확인
+
+```bash
+k get all -n monitoring
+```
+
+```bash
+NAME                                                     READY   STATUS    RESTARTS   AGE
+pod/prometheus-alertmanager-0                            1/1     Running   0          2m
+pod/prometheus-kube-state-metrics-66858d7dfd-bsvrl       1/1     Running   0          2m
+pod/prometheus-prometheus-node-exporter-ch6s2            1/1     Running   0          2m
+pod/prometheus-prometheus-node-exporter-w9vrz            1/1     Running   0          2m
+pod/prometheus-prometheus-pushgateway-866c5c685c-w8bxr   1/1     Running   0          2m
+pod/prometheus-server-7467554dc4-kl2tg                   2/2     Running   0          2m
+
+NAME                                          TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
+service/prometheus-alertmanager               ClusterIP   172.20.38.51     <none>        9093/TCP       2m1s
+service/prometheus-alertmanager-headless      ClusterIP   None             <none>        9093/TCP       2m1s
+service/prometheus-kube-state-metrics         ClusterIP   172.20.24.163    <none>        8080/TCP       2m1s
+service/prometheus-prometheus-node-exporter   ClusterIP   172.20.110.164   <none>        9100/TCP       2m1s
+service/prometheus-prometheus-pushgateway     ClusterIP   172.20.80.245    <none>        9091/TCP       2m1s
+service/prometheus-server                     NodePort    172.20.83.66     <none>        80:31562/TCP   2m1s
+
+NAME                                                 DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE
+daemonset.apps/prometheus-prometheus-node-exporter   2         2         2       2            2           kubernetes.io/os=linux   2m1s
+
+NAME                                                READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/prometheus-kube-state-metrics       1/1     1            1           2m1s
+deployment.apps/prometheus-prometheus-pushgateway   1/1     1            1           2m1s
+deployment.apps/prometheus-server                   1/1     1            1           2m1s
+
+NAME                                                           DESIRED   CURRENT   READY   AGE
+replicaset.apps/prometheus-kube-state-metrics-66858d7dfd       1         1         1       2m1s
+replicaset.apps/prometheus-prometheus-pushgateway-866c5c685c   1         1         1       2m1s
+replicaset.apps/prometheus-server-7467554dc4                   1         1         1       2m1s
+
+NAME                                       READY   AGE
+statefulset.apps/prometheus-alertmanager   1/1     2m1s
+```
+
+#### 16. ALB를 Deployment에 부착할 ALB 생성
+
+```bash
+vi prometheus-loadbalncer.yaml
+```
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-monitoring
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: instance
+    alb.ingress.kubernetes.io/load-balancer-name: prometheus-name
+    alb.ingress.kubernetes.io/subnets: subnet-08abcb5f2f93ed4e1,subnet-0518bdb827ac408de
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-2:{user_id}:certificate/{certificate-id}
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+spec:
+  rules:
+    - host:
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: prometheus-server
+                port:
+                  number: 80
+```
+
+```bash
+k apply -f prometheus-loadbalncer.yaml -n monitoring
+```
+
+#### 17. ALB DNS 주소로 접속 확인
+
+ALB의 DNS주소를 통해 인터넷에서 접속하여, 제대로 구축됐는지 확인합니다.
+
+```bash
+k get ingress -n monitoring
+
+# NAME                 CLASS    HOSTS   ADDRESS                                                       PORTS   AGE
+# ingress-monitoring   <none>   *       prometheus-name-1852579681.ap-northeast-2.elb.amazonaws.com   80      5m58s
+```
+
+![Prometheus 접속 확인](/assets/Images/11.Kubernetes-proj/image%2039.png)
+
+### 그라파나 설치 및 프로메테우스 연동
+
+#### 1. 그라파나 repo 추가
+
+```bash
+helm repo add grafana https://grafana.github.io/helm-charts
+```
+
+#### 2. 그라파나 helm 설치
+
+```bash
+helm install my-grafana grafana/grafana --namespace grafana --set service.type=NodePort --set persistence.enabled=true
+```
+
+#### 3. 그라파나 아이디, 패스워드 얻어오기
+
+**⚠️ 위 명령어에서 네임스페이스와 서비스 이름을 바꿨다면 맞춰주셔야 합니다.**
+
+```bash
+echo $(kubectl get secret my-grafana -n grafana -o jsonpath='{.data.admin-user}' | base64 --decode)
+echo $(kubectl get secret my-grafana -n grafana -o jsonpath='{.data.admin-password}' | base64 --decode)
+```
+
+![그라파나 계정 정보](/assets/Images/11.Kubernetes-proj/image%2040.png)
+
+#### 4. Load Balancer 생성
+
+```bash
+vi grafana-alb.yaml
+```
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: garafana-ingress
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: instance
+    alb.ingress.kubernetes.io/load-balancer-name: grafana-name
+    alb.ingress.kubernetes.io/subnets: subnet-08abcb5f2f93ed4e1,subnet-0518bdb827ac408de
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-2:{user_id}:certificate/{certificate-id}
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+spec:
+  rules:
+    - host:
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: my-grafana
+                port:
+                  number: 80
+```
+
+```bash
+k apply -f grafana-alb.yaml
+```
+
+#### 5. 그라파나 접속
+
+Load Balancer의 DNS 주소로 들어갑니다. 3번에서 얻어온 username, userpassword를 입력해서 로그인합니다.
+
+![그라파나 로그인 1](/assets/Images/11.Kubernetes-proj/image%2041.png)
+![그라파나 로그인 2](/assets/Images/11.Kubernetes-proj/image%2042.png)
+
+#### 6. Prometheus 연결
+
+Prometheus 설치 후 grafana와 연결합니다.
+(SVC로 묶어진 NodePort를 활용하여 Prometheus 서버와 연결하는 경로를 설정합니다.)
+
+![Prometheus 연결 1](/assets/Images/11.Kubernetes-proj/image%2043.png)
+![Prometheus 연결 2](/assets/Images/11.Kubernetes-proj/image%2044.png)
+
+#### 7. Prometheus 연결 확인
+
+Prometheus가 Grafana에 정상적으로 추가됐는지 확인합니다.
+
+![Prometheus 연결 확인](/assets/Images/11.Kubernetes-proj/image%2045.png)
+
+#### 8. 데이터 확인
+
+DashBoards의 샘플 Metric들을 보고 정상적으로 Data를 가져올 수 있는지 확인합니다.
+
+![데이터 확인](/assets/Images/11.Kubernetes-proj/image%2046.png)
+
+#### 9. DashBoard Template 가져오기
+
+DashBoard에서 New - Import를 눌러서, 간단한 Template을 가져옵니다.
+
+**참고 링크**: https://grafana.com/grafana/dashboards/
+
+![Template 가져오기 1](/assets/Images/11.Kubernetes-proj/image%2047.png)
+![Template 가져오기 2](/assets/Images/11.Kubernetes-proj/image%2048.png)
+
+#### 10. DashBoard 확인
+
+생성된 DashBoard에서 Data가 N/A로 표시될 수 있습니다. 다만, 여기서 해당 부분을 인지해야 하는데요.. Prometheus의 Template을 만들었을 때와 달리 Query 부분이 바뀌는 등의 이유로 N/A로 표기될 수 있습니다. Prometheus Version, Grafana Version이 해당 Template의 버전과 비슷한지 확인합니다.
+
+![DashBoard 확인](/assets/Images/11.Kubernetes-proj/image%2049.png)
+
+## 주요 학습 포인트
+
+### ✅ **아키텍처 이해**
+- EKS 클러스터의 3-Tier 아키텍처 구성
+- Private/Public 서브넷 분리를 통한 보안 강화
+- ALB를 통한 외부 트래픽 라우팅
+
+### ✅ **컨테이너화 및 배포**
+- Docker 이미지 빌드 및 ECR 레지스트리 활용
+- Kubernetes Deployment, Service, Ingress 리소스 관리
+- Helm을 통한 패키지 관리
+
+### ✅ **모니터링 및 관찰성**
+- Prometheus를 통한 메트릭 수집
+- Grafana를 통한 데이터 시각화
+- 클러스터 및 애플리케이션 모니터링
+
+### ✅ **보안 설정**
+- IAM 역할 및 정책 설정
+- SSL/TLS 인증서를 통한 HTTPS 통신
+- 보안 그룹 및 네트워크 정책
+
+## 트러블슈팅 가이드
+
+### 🔧 **일반적인 문제 해결**
+
+1. **Build 실패 시 확인 사항**
+   - RDS 엔드포인트, 마스터 ID, 패스워드 확인
+   - RDS 보안 그룹에서 3306 포트 개방 여부
+   - mgmt ec2에서 MySQL 클라이언트로 RDS 접속 테스트
+
+2. **Pod 배포 실패 시**
+   - ECR 이미지 경로 확인
+   - IAM 권한 설정 검토
+   - 보안 그룹 및 네트워크 설정 점검
+
+3. **ALB 생성 실패 시**
+   - Public 서브넷 ID 확인
+   - AWS Load Balancer Controller 설치 상태 확인
+   - Certificate ARN 및 도메인 검증 상태 확인
+
+## 참고 자료
+
+- [AWS EKS 공식 문서](https://docs.aws.amazon.com/eks/)
+- [Kubernetes 공식 문서](https://kubernetes.io/docs/)
+- [Prometheus 공식 문서](https://prometheus.io/docs/)
+- [Grafana 공식 문서](https://grafana.com/docs/)
+- [AWS Load Balancer Controller](https://docs.aws.amazon.com/ko_kr/eks/latest/userguide/lbc-helm.html)
+
+---
+
+> **💡 팁**: 이 프로젝트를 통해 Kubernetes의 핵심 개념과 AWS 클라우드 네이티브 서비스의 통합 활용법을 학습할 수 있습니다. 각 단계별로 차근차근 진행하며, 오류 발생 시 로그를 꼼꼼히 확인하는 습관을 기르세요.
