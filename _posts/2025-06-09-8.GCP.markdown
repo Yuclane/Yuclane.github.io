@@ -1,8 +1,8 @@
 ---
 layout: post
 title:  "GCP 개요 및 BigQuery"
-date:   2025-06-09 12:20 +0900
-categories: Database
+date:   2025-06-09 15:34 +0900
+categories: GCP BigQuery CSP
 ---
 
 .

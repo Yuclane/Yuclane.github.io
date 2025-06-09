@@ -1,0 +1,1264 @@
+---
+layout: post
+title:  "Kubernetes의 개요부터 설치 및 실습"
+date:   2025-06-09 17:44 +0900
+categories: Kubernetes 
+---
+
+.
+
+# Cloud Native와 Kubernetes 완벽 가이드
+
+## 목차 (Table of Contents)
+1. [Cloud Native, Docker Container 이해](#1-cloud-native-docker-container-이해)
+2. [쿠버네티스의 이해](#2-쿠버네티스의-이해)
+3. [쿠버네티스 설치](#3-쿠버네티스-설치)
+4. [쿠버네티스의 명령어](#4-쿠버네티스의-명령어)
+5. [EKS 설치 및 삭제](#5-eks-설치-및-삭제)
+
+---
+
+## 1. Cloud Native, Docker Container 이해
+
+### 1.1 클라우드 컴퓨팅
+
+**클라우드 컴퓨팅**은 컴퓨팅 파워, 데이터베이스, 스토리지, 애플리케이션 및 기타 IT 리소스를 **온디맨드로 인터넷을 통해 제공**하고 **사용한 만큼만 비용을 지불**하는 것을 의미합니다.
+
+### 1.2 클라우드 네이티브
+
+- **클라우드 컴퓨팅 환경에서 현대적 애플리케이션**을 구축, 배포 및 관리할 때의 소프트웨어 접근 방식
+- 현대적인 회사는 고객의 요구를 충족하기 위해 신속하게 업데이트할 수 있는 **확장성, 유연성 및 복원력**이 뛰어난 애플리케이션을 구축하고자 함
+- 이를 위해 **클라우드 인프라에서 지원하는 현대적인 도구와 기술**을 사용
+- 이러한 클라우드 네이티브 기술은 서비스 제공에 미치는 영향 없이 애플리케이션을 빠르게 자주 변경할 수 있도록 지원하여 **혁신 역량과 경쟁력**을 제공
+
+### 1.3 CNCF (Cloud Native Computing Foundation)
+
+- [Linux Foundation](https://www.linuxfoundation.org/)(비영리)의 [하위 재단](https://www.cncf.io/about/faq/#what-is-the-relationship-between-the-cncf-and-the-linux-foundation)
+- **클라우드 네이티브 컴퓨팅의 벤더(공급업체) 중립적 오픈 소스 허브**
+- Kubernetes 및 Prometheus와 같은 프로젝트를 호스팅하여 클라우드 네이티브를 보편적이고 지속 가능하게 함
+- 세계 최고의 개발자, 최종 사용자 및 공급업체를 모아 최대 규모의 오픈 소스 개발자 컨퍼런스를 운영
+
+### 1.4 CNCF가 정의한 Cloud Native
+
+클라우드 네이티브 기술은 조직이 퍼블릭, 프라이빗, 그리고 하이브리드 클라우드와 같은 현대적이고 동적인 환경에서 확장 가능한 애플리케이션을 개발하고 실행할 수 있게 합니다.
+
+#### 1.4.1 핵심 기술
+
+**컨테이너, 서비스 메쉬, 마이크로서비스, 불변(Immutable) 인프라, 선언형(Declarative) API**
+
+#### 1.4.2 특징
+- 회복성, 관리 편의성, 가시성을 갖춘 **느슨하게 결합된 시스템**을 가능하게 함
+- 견고한 자동화 기능을 함께 사용하면, 엔지니어는 **영향이 큰 변경을 최소한의 노력으로 자주, 예측 가능하게 수행**할 수 있음
+- Cloud Native Computing Foundation은 벤더 중립적인 오픈 소스 프로젝트 생태계를 육성하고 유지함으로써 해당 패러다임 채택을 촉진
+
+### 1.5 클라우드 네이티브 핵심 기술
+
+#### 1.5.1 컨테이너
+
+![컨테이너 개념도](/assets/Images/10.Kubernetes/image.png)
+
+*컨테이너의 구조와 특징*
+
+- 컨테이너는 **애플리케이션과 그 의존성을 함께 패키징**하여 격리된 환경에서 실행할 수 있는 가상화 기술
+- 클라우드 네이티브 애플리케이션에서 **가장 작은 컴퓨팅 유닛**
+- 코드, 런타임, 시스템 도구, 시스템 라이브러리 및 설정과 같이 어떤 환경에서나 실행하기 위해 필요한 모든 요소를 포함
+- **경량의 독립 실행형 소프트웨어 패키지**, 애플리케이션 가상화
+- 포트를 독립적으로 활용할 수 있고, 컨테이너별로 설정이 가능
+
+#### 1.5.2 서비스 메시
+
+![서비스 메시 구조도](/assets/Images/10.Kubernetes/image%201.png)
+
+*서비스 메시의 아키텍처와 통신 방식*
+
+- 서비스 메시는 **여러 마이크로서비스 간의 통신을 관리**하는 클라우드 인프라의 소프트웨어 계층으로 컨테이너화된 마이크로서비스로 구성
+- 개발자는 애플리케이션에 새 코드를 작성하지 않고도 서비스 메시를 사용하여 **추가 기능을 도입**할 수 있음
+- 서비스 간 연결을 관리하기 위해 **모니터링, 로깅, 추적, 트래픽 제어**와 같은 새로운 기능을 제공
+- 이러한 기능은 각 서비스의 코드와 독립적이므로 네트워크 경계를 넘어 여러 서비스 관리 시스템에서 작동
+- **Istio**는 주로 Kubernetes와 함께 작동하도록 설계된 오픈 소스 서비스 메시 프로젝트
+
+> 💡 **참고**: 최근에는 Cilium이 트렌드로 올라오고 있습니다.
+
+#### 1.5.3 마이크로서비스
+
+![마이크로서비스 vs 모놀리식](/assets/Images/10.Kubernetes/image%202.png)
+
+*마이크로서비스와 모놀리식 아키텍처 비교*
+
+- **애플리케이션 개발을 위한 아키텍처 스타일** (독립적인 소규모 팀에서 서비스 개발)
+- 대규모 애플리케이션을 각각 담당 영역을 가진 **소규모의 독립적인 구성요소로 구분**
+- 마이크로서비스 아키텍처의 경우, 서비스가 독립적으로 실행되기 때문에 애플리케이션의 특정 기능에 대한 수요를 충족하도록 **각각의 서비스를 업데이트, 배포 및 확장** 가능
+- 모놀리식 아키텍처의 경우 모든 프로세스가 긴밀하게 결합되고 단일 서비스로 실행되므로, 애플리케이션의 한 프로세스에 대한 수요가 급증하면 **해당 아키텍처 전체를 확장**해야 함
+
+#### 1.5.4 불변 인프라
+
+![불변 인프라 개념](/assets/Images/10.Kubernetes/image%203.png)
+
+*불변 인프라의 개념과 장점*
+
+- 불변 인프라는 클라우드 네이티브 애플리케이션을 호스팅하는 서버가 **배포 후에도 변경되지 않은 상태로 유지**된다는 것을 의미
+- 변경 불가능한 인프라는 **수동 업그레이드를 피함**으로써 클라우드 네이티브 배포 프로세스의 **예측 가능성을 높임**
+
+![불변 인프라 vs 가변 인프라](/assets/Images/10.Kubernetes/image%204.png)
+
+*가변 인프라와 불변 인프라의 차이점*
+
+#### 1.5.5 선언형(Declarative) API
+
+![선언형 vs 명령형](/assets/Images/10.Kubernetes/image%205.png)
+
+*선언형과 명령형 접근법의 차이*
+
+##### 명령형(Imperative) 접근법
+- 원하는 상태를 만들기 위해 **필요한 동작을 지시**하는 방식
+- **"요구되는 환경을 어떻게(how) 만들 것인가"**에 초점을 둠
+
+##### 선언형(Declarative) 접근법
+- **원하는 상태 그 자체를 선언**하는 방식
+- **"요구되는 환경이 무엇인가(what)"**에 초점을 둠
+
+### 1.6 일반적인 클라우드 네이티브 개발 방식
+
+#### 1.6.1 지속적 통합(CI)
+- 개발자가 오류 없이 **자주 변경 사항을 공유 코드 베이스에 통합**하는 소프트웨어 개발 방식
+- 소규모로 자주 변경하면 문제를 더 빠르게 식별하고 해결할 수 있으므로 **개발 효율성이 높아짐**
+- CI 도구는 변경 사항이 있을 때마다 **코드 품질을 자동으로 평가**하므로 개발 팀이 보다 높은 신뢰도로 새로운 기능을 추가할 수 있음
+
+#### 1.6.2 지속적 전달(CD)
+- 클라우드 네이티브 개발을 지원하는 소프트웨어 개발 방식
+- 개발 팀은 CD를 사용하여 **언제든 마이크로서비스를 클라우드에 배포**할 수 있음
+- 소프트웨어 자동화 도구를 사용하여 새 기능을 도입하고 애플리케이션의 버그를 수정하는 등의 **변경에 따른 위험을 줄임**
+- CI와 CD는 유기적으로 작동하며 **효율적인 소프트웨어 제공을 지원**
+
+#### 1.6.3 DevOps
+- **개발 및 운영 팀의 협업을 개선**하는 소프트웨어 문화
+- 이는 클라우드 네이티브 모델에 부합하는 설계 철학
+- DevOps 방식을 통해 조직은 **소프트웨어 개발 수명 주기를 단축**
+- 개발자와 운영 엔지니어는 DevOps 도구를 사용하여 **클라우드 네이티브 개발을 자동화**
+
+#### 1.6.4 서버리스 컴퓨팅
+- 서버리스 컴퓨팅은 **클라우드 제공업체가 기반 서버 인프라를 전적으로 관리**하는 클라우드 네이티브 모델
+- 클라우드 인프라가 애플리케이션 요구 사항에 맞게 **자동으로 확장 및 구성**되기 때문에 개발자는 서버리스 컴퓨팅을 활용
+- 개발자는 **애플리케이션에 사용되는 리소스에 대해서만 비용을 지불**
+- 서버리스 아키텍처는 **앱 실행이 중지되면 자동으로 컴퓨팅 리소스를 제거**
+
+### 1.7 컨테이너 작동 원리
+
+#### 1.7.1 chroot
+- 특정 디렉터리를 **최상위 디렉터리 root로 인식**하게끔 설정하는 리눅스 기술(명령)
+- 파일을 분리(격리)하여 독립공간을 생성. 새로운 가상 root 디렉토리를 생성. **'chroot jail'**
+
+#### 1.7.2 unshare
+- **네임스페이스(namespaces)**를 이용하여 **프로세스간 격리(isolation)**를 제공
+- 다음과 같이 서로 다른 타입의 네임스페이스를 제공
+
+#### 1.7.3 cgroups
+- **CPU, 메모리, 디스크 I/O, 네트워크 등의 자원 사용량 제어**, 특정 애플리케이션의 과도한 자원 사용을 제한하는 기능
+- 격리된 공간에서 자원을 제어할 수 있는 기능으로 **CPU, memory 등 자원 사용률을 할당하고 제한**
+
+---
+
+## 2. 쿠버네티스의 이해
+
+### 2.1 컨테이너 오케스트레이션의 필요성(클러스터링)
+
+![컨테이너 클러스터링](/assets/Images/10.Kubernetes/image%206.png)
+
+*컨테이너 클러스터링을 통한 고가용성 구현*
+
+- **node1이 죽어도, node2와 node3에서 작동할 수 있음**(고가용성)
+- **확장성 + 관리 용이성**
+
+### 2.2 컨테이너의 계층 구조
+
+![컨테이너 계층 구조](/assets/Images/10.Kubernetes/image%207.png)
+
+*컨테이너 오케스트레이션의 계층적 구조*
+
+### 2.3 쿠버네티스의 소개
+
+- 키잡이(helmsman)나 파일럿(pilot)을 뜻하는 그리스어 **κυβερνήτης**에서 유래
+- **컨테이너 오케스트레이터**(실행 및 관리)
+- **Container Cluster Manager**
+- 다양한 클라우드 및 베어메탈 환경 지원
+- **Kubernetes is all about decoupled(분리된), transient(일시적인, 지속되지 않는) services.**
+
+### 2.4 쿠버네티스의 기능
+
+#### 2.4.1 Automated rollouts and rollbacks (자동화된 롤아웃과 롤백)
+- 쿠버네티스는 애플리케이션 또는 애플리케이션의 설정 변경시 **점진적으로 롤아웃**
+- 단, 애플리케이션을 모니터링해서 **모든 인스턴스가 동시에 종료되지 않도록 보장**
+- 만약 어떤 문제가 발생하면 쿠버네티스는 **변경 사항을 롤백**
+- **성장하는 디플로이먼트(Deployments) 솔루션 생태계를 이용**
+
+#### 2.4.2 Service discovery and load balancing (서비스 디스커버리와 로드 밸런싱)
+- 쿠버네티스를 사용하면 **익숙하지 않은 서비스 디스커버리 메커니즘을 사용하기 위해 애플리케이션을 수정할 필요가 없음**
+- 쿠버네티스는 **파드에게 고유한 IP 주소와 파드 집합에 대한 단일 DNS 명을 부여**하고, 그것들 간에 **로드-밸런스를 수행**할 수 있음
+
+#### 2.4.3 Storage orchestration (스토리지 오케스트레이션)
+- 로컬 스토리지, AWS나 GCP와 같은 퍼블릭 클라우드 공급자 또는 NFS, iSCSI, Ceph, Cinder와 같은 네트워크 스토리지 시스템에서 **원하는 스토리지 시스템을 자동으로 마운트**
+
+#### 2.4.4 Self-healing (자가 치유)
+- **실패한 컨테이너를 재시작**하고, 노드가 죽는 경우 **컨테이너들을 교체하기 위해 다시 스케줄링**
+- 사용자가 정의한 상태 체크에 응답하지 않는 컨테이너들을 종료시키며, **서비스를 제공할 준비가 완료될 때까지 해당 컨테이너를 클라이언트에 알리지 않음**
+
+#### 2.4.5 Secret and configuration management (시크릿과 구성 관리)
+- **사용자의 이미지를 다시 빌드하거나 스택 구성의 시크릿을 노출하지 않고** 시크릿과 애플리케이션 구성을 배포하고 업데이트
+
+#### 2.4.6 Automatic bin packing (자동 빈 패킹)
+- 리소스 요구 사항과 기타 제약 조건에 따라 **컨테이너를 자동으로 배치**하지만, 가용성은 그대로 유지
+- 활용도를 높이고 더 많은 리소스를 절약하기 위해 **중요한(critical) 워크로드와 최선의(best-effort) 워크로드를 혼합**
+
+#### 2.4.7 Batch execution (배치 실행)
+- 쿠버네티스는 서비스 외에도 **배치(batch)와 CI 워크로드를 관리**할 수 있으며, 원하는 경우 실패한 컨테이너를 교체할 수 있음
+
+#### 2.4.8 Horizontal scaling (Horizontal 스케일링)
+- **간단한 명령어나 UI를 통해서 또는 CPU 사용량에 따라 자동으로** 애플리케이션의 스케일을 업 또는 다운
+
+#### 2.4.9 IPv4/IPv6 dual-stack (IPv4/IPv6 이중 스택)
+- **파드와 서비스에 IPv4와 IPv6 주소 할당**
+
+#### 2.4.10 Designed for extensibility (확장성을 고려하여 설계됨)
+- **쿠버네티스 업스트림 소스 코드 수정 없이** 쿠버네티스 클러스터에 기능을 추가할 수 있음
+
+### 2.5 쿠버네티스 클러스터 아키텍처
+
+![쿠버네티스 아키텍처](/assets/Images/10.Kubernetes/image%208.png)
+
+*쿠버네티스 클러스터의 전체 아키텍처*
+
+#### 2.5.1 kube-api-server
+- **모든 클러스터 통신의 중심**
+- **REST API 제공**
+- 클러스터의 모든 명령어, 리소스 관리, 인증, 권한 확인
+- **kubectl**, 내부 컴포넌트들이 API Server를 통해 통신
+
+#### 2.5.2 etcd
+- **일관되고 가용성이 높은 키 값 저장소**로 모든 클러스터 데이터에 대한 Kubernetes의 백업 저장소로 사용
+- Kubernetes 클러스터에서 etcd를 백업 저장소로 사용하는 경우 **데이터에 대한 백업 계획이 있는지 확인** 필요
+
+#### 2.5.3 scheduler
+- [노드](https://kubernetes.io/ko/docs/concepts/architecture/nodes/)가 배정되지 않은 새로 생성된 [파드](https://kubernetes.io/ko/docs/concepts/workloads/pods/)를 감지하고, **실행할 노드를 선택**하는 컨트롤 플레인 컴포넌트
+- 스케줄링 결정을 위해서 고려되는 요소는 **리소스에 대한 개별 및 총체적 요구 사항, 하드웨어/소프트웨어/정책적 제약, 어피니티(affinity) 및 안티-어피니티(anti-affinity) 명세, 데이터 지역성, 워크로드-간 간섭, 데드라인**을 포함
+
+#### 2.5.4 kube-controller-manager
+- [컨트롤러](https://kubernetes.io/ko/docs/concepts/architecture/controller/) 프로세스를 실행하는 컨트롤 플레인 컴포넌트
+- 논리적으로, 각 [컨트롤러](https://kubernetes.io/ko/docs/concepts/architecture/controller/)는 분리된 프로세스이지만, **복잡성을 낮추기 위해 모두 단일 바이너리로 컴파일되고 단일 프로세스 내에서 실행**
+
+#### 2.5.5 kubelet
+- **Node의 에이전트**
+- **Pod들의 상태를 확인하며, 정상 동작하게 관리**
+
+#### 2.5.6 kube-proxy
+- **서비스 네트워킹 처리**
+- **클러스터 내부/외부 트래픽 라우팅**
+- **iptables 또는 IPVS를 이용해 Service -> Pod 트래픽 관리**
+
+> 📖 **참고 자료**: [Kubernetes 컴포넌트 공식 문서](https://kubernetes.io/ko/docs/concepts/overview/components/)
+
+### 2.6 쿠버네티스의 생명 주기
+
+![쿠버네티스 라이프사이클](/assets/Images/10.Kubernetes/image%209.png)
+
+*쿠버네티스에서 Pod 생성부터 실행까지의 전체 프로세스*
+
+1. **사용자는 API 서버를 통해 Pod를 생성**하고 API 서버는 이를 etcd에 씁니다.
+2. **스케줄러는 '결합 해제된(언바인딩)' Pod를 발견**하고 해당 Pod를 실행할 Node를 결정합니다. 해당 결합(바인딩)을 API 서버에 다시 기록합니다.
+3. **Kubelet은 해당 Node에 결합(바인딩) 된 Pod 집합의 변경 사항을 감지**합니다. 그런 다음 컨테이너 런타임(예: Docker)을 통해 컨테이너를 실행합니다.
+4. **Kubelet은 컨테이너 런타임(예:Docker)을 통해 Pod 상태를 모니터링**합니다. 상황이 변경되면 Kubelet은 현재 상태를 API 서버에 다시 반영합니다.
+
+---
+
+## 3. 쿠버네티스 설치
+
+### 3.1 Kubernetes 설치 옵션
+
+#### 3.1.1 다양한 설치 방법
+- **Minikube** (It is a single node kubernetes cluster)
+- **kops** (Multi node kubernetes setup into AWS)
+  - 쿠버네티스 클러스터의 자동 프로비저닝을 위한 CLI tool
+  - Kubernetes 프로젝트의 일부로 AWS 전용도구에서 구글 클라우드 지원, other
+- **Kubespray**
+  - on-premises 베어 메탈 서버에 설치하는 중점을 둠
+  - 고가용성과 다중 플랫폼을 지원
+- **Kubeadm** (Multi Node Cluster in our on-premises)
+- **Puppet Kubernetes Module**
+
+### 3.2 리눅스 환경 구축 (VMware)
+
+#### 3.2.1 VMWare, Ubuntu 설치
+- [VMWare Workstation Pro](https://blogs.vmware.com/workstation/2024/05/vmware-workstation-pro-now-available-free-for-personal-use.html)
+- [ubuntu 설치](https://ubuntu.com/download/alternative-downloads)
+
+#### 3.2.2 파일의 무결성 검증 (iso 파일)
+```bash
+Get-FileHash ubuntu-<version>-amd64.iso
+cat SHA256SUMS.txt
+```
+
+#### 3.2.3 VMware Workstation Pro 설치 및 환경 구성
+- Subnet IP: 10.0.2.0
+- Subnet mask: 255.255.255.0
+- NAT Settings → Gateway IP 10.0.2.2
+- DHCP Settings → 10.0.2.128 ~ 10.0.2.254
+
+![VMware 네트워크 설정](/assets/Images/10.Kubernetes/image%2010.png)
+
+*VMware 네트워크 설정 화면*
+
+#### 3.2.4 Ubuntu 운영체제 설치
+1. English → Install Ubuntu
+2. Keyboard layout : English(US) → Continue
+3. Update and other software: Minimal installation → Continue
+   - Check [Download updates while installing Ubuntu] (기본값)
+4. Installation type: Erase disk and install Ubuntu → Install Now
+   - [ Write the changes to disks? → [Continue] ]
+5. Where are you? Seoul → Continue
+   - Your name : ubuntu
+   - Choose a password: @!ubuntu#1
+   - Select [Require my password to login] (기본값)
+   - Continue
+6. 설치 완료 후 [Restart Now]
+
+#### 3.2.5 로그인 (GUI) 및 네트워크 구성
+1. 오른쪽 상단 네트워크 아이콘 클릭 → [Settings] 선택
+   - Network : Wired 설정 아이콘의 **우측 톱니바퀴** 클릭
+   - IPv4 탭 선택 > Manual 선택
+     - IP address: 10.0.2.10
+     - Netmask: 24
+     - Gateway: 10.0.2.2
+     - DNS server: 168.126.63.1, 8.8.8.8
+   - 우측 상단의 [Apply]
+   - IPv6 > Disable > Apply
+2. Wired - Connected 네트워크 버튼을 이용하여, 디바이스를 껐다 켜기
+3. Network 설정 창 닫기
+
+#### 3.2.6 시스템 기본 운영 구성
+1. 바탕화면 마우스 우클릭 → Open in Terminal
+   ```bash
+   $ sudo -i
+   [sudo] password for ubuntu: @!ubuntu#1
+   ```
+
+2. root 패스워드 설정 (@!root#1)
+   ```bash
+   # passwd root
+   ```
+
+3. ssh-server 및 기본 패키지 설치
+   ```bash
+   # apt update
+   # apt install openssh-server openssh-client -y
+   # systemctl enable --now ssh
+   # apt install vim tree wget git bash-completion iputils-ping network-manager -y
+   ```
+
+4. hostname 변경
+   ```bash
+   # hostnamectl hostname k8s-master
+   ```
+
+5. TEXT login 구성 ([참고](https://www.cyberciti.biz/faq/switch-boot-target-to-text-gui-in-systemd-linux/)) - multi-user.target / graphical.target
+   ```bash
+   # systemctl get-default
+   # systemctl set-default multi-user.target
+   # systemctl isolate multi-user.target
+   ```
+
+6. TEXT 로그인
+   ```bash
+   login: ubuntu
+   password: @!ubuntu#1
+   ```
+
+#### 3.2.7 가상머신 snapshot & clone
+1. [k8s-master] 에서 마우스 우측 버튼 클릭 → [ Snapshot ] → [ Take Snapshot ]
+   - Name: Installation complete
+   - Description:
+     - ip: 10.0.2.10
+     - remote login ID:
+     - root / @!root#1
+     - ubuntu / @!ubuntu#1
+
+2. Clone : 가상 머신 복제
+   - 좌측의 k8s-master 선택 후 [VM] - [ Manage ] - [ Clone ]
+   - [Next] - Clone from [An existing snapshot (power off only)
+     - [Installation complete] 선택 - [Next]
+   - Clone method 에서 [Create a full clone] 선택 - [Next]
+   - Virtual machine name: k8s-worker1
+   - [Finish] 를 선택하여 k8s-master를 k8s-worker1 으로 복제(Full Clone) - [Close]
+   - (선택) 노트북 등 RAM이 16GB 이하인 경우 worker의 메모리를 2GB로 변경
+
+3. 복제된 k8s-worker1 실행 후 ubuntu 계정 로그인
+   - username: ubuntu, password: @!ubuntu#1
+   ```bash
+   $ sudo -i
+   # nmtui
+   ```
+   - [Edit a connection] → Wired connection 1 → [Edit…] 클릭
+   - IPv4 CONFIGURATION
+     - Address: 10.0.2.11/24
+     - Gateway: 10.0.2.2
+     - DNS servers: 168.126.63.1, 8.8.8.8 → <OK>
+   - Wired connection 1 구성 메뉴에서 <Back> 클릭
+   - [Activate a connection] 클릭으로 앞서 설정한 네트워크 비활성화/활성화 → <Back>
+   - [Set system hostname] 클릭 후 호스트 이름 : k8s-worker1
+   - [Quit] 선택
+   - 시스템 리부팅: # reboot 후 MobaXterm 원격 로그인
+
+### 3.3 쿠버네티스 환경 구축 (공통)
+
+#### 3.3.1 표준 시간대 변경(선택)
+- 표준 시간대 확인: master, worker1, worker2
+  ```bash
+  # timedatectl
+  # Time zone: Asia/Seoul (KST, +0900) 되어 있으면 변경할 필요 없음
+  ```
+- 표준 시간대 변경 : master, worker1, worker2
+  ```bash
+  # timedatectl list-timezones | grep Seoul
+  # timedatectl set-timezone Asia/Seoul
+  # timedatectl
+  # Time zone: Asia/Seoul (KST, +0900) 되어 있어야 함
+  ```
+
+> 📖 **참고자료**: [Amazon Linux의 표준 시간대 변경](https://docs.aws.amazon.com/ko_kr/AWSEC2/latest/UserGuide/set-time.html#change_time_zone)
+
+#### 3.3.2 호스트 설정
+- 호스트 이름 변경 : k8s-master, k8s-worker1, k8s-worker2
+  ```bash
+  # hostnamectl hostname k8s-master
+  # hostnamectl hostname k8s-worker1
+  # hostnamectl hostname k8s-worker2
+  ```
+
+- hosts 설정 : k8s-master, k8s-worker1, k8s-worker2
+  ```bash
+  # ip addr
+  # vi /etc/hosts
+  
+  10.0.2.10 k8s-master
+  10.0.2.11 k8s-worker1
+  10.0.2.12 k8s-worker2
+  ```
+
+#### 3.3.3 노드 테스트
+- ping test : k8s-master(control plane), k8s-worker1, k8s-worker2
+  ```bash
+  # ping -c 1 k8s-master
+  # ping -c 1 k8s-worker1
+  # ping -c 1 k8s-worker2
+  ```
+
+#### 3.3.4 Kubernetes 설치 도구 - kubeadm
+- Kubernetes 공식 설치 도구가 있습니다. 이번 실습에서는 **kubeadm**을 사용하는 방법을 알아봅니다. 커뮤니티에서 지원하는 독립 도구로서 Kubernetes 클러스터를 구축하는 기본 방법으로 사용됩니다.
+- 자체 장비를 사용하는 경우 모든 노드에서 **스왑을 비활성화(disable swap)**하고 **네트워크 인터페이스가 하나만 있는지**(only one network interface) 확인해야 합니다. 여러 인터페이스가 지원되지만 추가 구성이 필요합니다. **kubeadm** 명령을 사용할 때 경고 또는 오류로 표시되는 다른 요구 사항이 있을 수 있습니다. 대부분의 명령은 일반 사용자로 실행되지만 루트 권한이 필요한 명령도 있습니다.
+
+> ⚠️ **매우 중요**: Kubernetes를 학습하는 동안 방화벽을 비활성화하십시오. 구성 요소 간 통신에 필요한 포트 목록이 있지만 목록이 필요한만큼 완전하지 않을 수 있습니다.
+
+#### 3.3.5 Install Kubernetes
+
+1. **패키지 리스트 업데이트 및 업그레이드 실행**
+   ```bash
+   ubuntu@k8s-master:~$ sudo -i
+   root@k8s-master:~# apt-get update && apt-get upgrade -y
+   root@k8s-master:~# apt-get install -y vim
+   
+   # 오류발생시
+   root@k8s-master:~# sudo rm -rf /var/lib/apt/lists/*
+   root@k8s-master:~# sudo apt-get clean
+   root@k8s-master:~# sudo apt-get update
+   ```
+
+2. **종속성을 처리하기 위해 설치해야 하는 여러 패키지**
+   ```bash
+   root@k8s-master:~# apt install curl apt-transport-https git wget \
+   software-properties-common lsb-release ca-certificates -y
+   ```
+
+3. **스왑을 비활성화**
+   ```bash
+   root@k8s-master:~# swapoff -a
+   # /etc/fstab 도 확인 또는 
+   # sed -i '/swap/s/^/#/' /etc/fstab
+   ```
+
+4. **모듈을 로드하여 다음 단계에 사용할 수 있는지 확인**
+   ```bash
+   root@k8s-master:~# cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
+   overlay
+   br_netfilter
+   EOF
+   # cat /etc/modules-load.d/k8s.conf
+   
+   root@k8s-master:~# modprobe overlay
+   root@k8s-master:~# modprobe br_netfilter
+   # lsmod | grep overlay
+   # lsmod | grep br_netfilter
+   ```
+
+5. **필요한 트래픽을 허용하도록 커널 네트워킹을 업데이트**
+   ```bash
+   # bridge traffic 보게 커널 파라미터 수정
+   # 필요한 sysctl 파라미터를 /etc/sysctl.d/conf 파일에 설정하면, 재부팅 후에도 값이 유지된다.
+   root@k8s-master:~# cat << EOF | tee /etc/sysctl.d/kubernetes.conf
+   net.bridge.bridge-nf-call-ip6tables = 1
+   net.bridge.bridge-nf-call-iptables = 1
+   net.ipv4.ip_forward = 1
+   EOF
+   # cat /etc/sysctl.d/kubernetes.conf
+   ```
+
+6. **변경 사항이 현재 커널에서도 사용되는지 확인(재부팅하지 않고 sysctl 파라미터 적용)**
+   ```bash
+   root@k8s-master:~# sysctl --system
+   <output_omitted>
+   * Applying /etc/sysctl.d/kubernetes.conf ...
+   net.bridge.bridge-nf-call-ip6tables = 1
+   net.bridge.bridge-nf-call-iptables = 1
+   net.ipv4.ip_forward = 1
+   * Applying /etc/sysctl.conf ...
+   ```
+
+7. **Docker의 공식 GPG키를 시스템에 추가 / Docker repository URL 등록**
+   ```bash
+   root@k8s-master:~# mkdir -p /etc/apt/keyrings
+   root@k8s-master:~# curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+   | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+   root@k8s-master:~# echo \
+   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+   https://download.docker.com/linux/ubuntu \
+   $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+   ```
+
+8. **컨테이너 소프트웨어를 설치**
+   ```bash
+   root@k8s-master:~# apt-get update && apt-get install containerd.io -y
+   root@k8s-master:~# containerd config default | tee /etc/containerd/config.toml
+   root@k8s-master:~# sed -e 's/SystemdCgroup = false/SystemdCgroup = true/g' -i /etc/containerd/config.toml
+   root@k8s-master:~# systemctl restart containerd
+   ```
+
+9. **Kubernetes 패키지 저장소의 공개 서명 키 다운로드**
+   ```bash
+   root@k8s-master:~# mkdir -p -m 755 /etc/apt/keyrings
+   root@k8s-master:~# curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.31/deb/Release.key \
+   | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+   ```
+
+10. **적절한 Kubernetes apt 저장소를 추가 (여기서는 1.31 선택)**
+    ```bash
+    root@k8s-master:~# echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] \
+    https://pkgs.k8s.io/core:/stable:/v1.31/deb/ /" \
+    | sudo tee /etc/apt/sources.list.d/kubernetes.list
+    deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg]
+    https://pkgs.k8s.io/core:/stable:/v1.31/deb/ /
+    ```
+
+11. **선언된 새 저장소로 업데이트**
+    ```bash
+    root@k8s-master:~# apt-get update
+    ```
+
+12. **Kubernetes 소프트웨어를 설치**
+    ```bash
+    root@k8s-master:~# apt-get install -y kubeadm=1.31.1-1.1 kubelet=1.31.1-1.1 kubectl=1.31.1-1.1
+    <output-omitted>
+    
+    root@k8s-master:~# apt-mark hold kubelet kubeadm kubectl
+    kubelet set on hold.
+    kubeadm set on hold.
+    kubectl set on hold.
+    ```
+
+13. **cp(control plane) 서버의 기본 인터페이스의 IP 주소를 찾기**
+    ```bash
+    root@k8s-master:~# hostname -i
+    10.0.2.10
+    root@k8s-master:~# ip addr show
+    ....
+    2: ens32: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+        link/ether 00:0c:29:21:0d:81 brd ff:ff:ff:ff:ff:ff
+        altname enp2s0
+        inet 10.0.2.10/24 brd 10.0.2.255 scope global noprefixroute ens32
+           valid_lft forever preferred_lft forever
+        inet6 fe80::7c16:b1db:18ab:b74f/64 scope link noprefixroute
+           valid_lft forever preferred_lft forever
+    ```
+
+14. **cp 서버에 대한 로컬 DNS 별칭을 추가**
+    ```bash
+    root@k8s-master:~# vim /etc/hosts
+    10.0.2.10 k8s-master #<-- Add this line
+    127.0.0.1 localhost
+    ....
+    ```
+
+### 3.4 쿠버네티스 환경 구축 (마스터 노드)
+
+#### 3.4.1 Install Kubernetes
+```bash
+root@k8s-master:~# vim kubeadm-config.yaml
+# kubeadm-config.yaml 생성 및 업로드
+apiVersion: kubeadm.k8s.io/v1beta3
+kind: ClusterConfiguration
+kubernetesVersion: 1.31.1                #<-- Use the word stable for newest version
+controlPlaneEndpoint: "k8s-master:6443"  #<-- Use the alias we put in /etc/hosts not the IP
+networking:
+  podSubnet: 192.168.0.0/16
+```
+
+- **cp를 초기화합니다. 출력물을 스캔하여 kubeadm-init.out 에 저장**
+  ```bash
+  root@k8s-master:~# kubeadm init --config=kubeadm-config.yaml --upload-certs \
+         | tee kubeadm-init.out             #<-- Save output for future review
+  [init] Using Kubernetes version: v1.31.1
+  [preflight] Running pre-flight checks
+  
+  <output_omitted>
+  ```
+
+> 💡 **참고**: kubeadm-config.yaml 등의 오류로 kubeadm init 실패하는 경우 → kubeadm reset 입력하여 초기화 → 설정을 다시 바꿔서 kubeadm init을 수행
+
+- **루트가 아닌 사용자 관리자 수준의 클러스터 액세스를 허용**
+  ```bash
+  root@k8s-master:~# exit
+  logout
+  
+  ubuntu@k8s-master:~$ mkdir -p $HOME/.kube
+  ubuntu@k8s-master:~$ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+  ubuntu@k8s-master:~$ sudo chown $(id -u):$(id -g) $HOME/.kube/config
+  ubuntu@k8s-master:~$ less .kube/config
+  apiVersion: v1
+  clusters:
+  - cluster:
+  <output_omitted>
+  ```
+
+- **네트워크 플러그인으로 Cilium을 사용**
+  ```bash
+  ubuntu@k8s-master:~$ find $HOME -name cilium-cni.yaml
+  # 교강사가 제공
+  ubuntu@k8s-master:~$ kubectl apply -f cilium-cni.yaml
+  serviceaccount/cilium created
+  serviceaccount/cilium-operator created
+  secret/cilium-ca created
+  secret/hubble-server-certs created
+  configmap/cilium-config created
+  <output_omitted>
+  
+  ubuntu@k8s-master:~$ kubectl get pods -A
+  NAMESPACE     NAME                                 READY   STATUS    RESTARTS   AGE
+  kube-system   cilium-operator-56bdb99ff6-cws5r     0/1     Pending   0          2m36s
+  kube-system   cilium-operator-56bdb99ff6-qkw9p     1/1     Running   0          2m36s
+  kube-system   cilium-r5z24                         1/1     Running   0          2m36s
+  <output_omitted>
+  ```
+
+- **kubectl 명령의 Bash 자동 완성을 활성화**
+  ```bash
+  ubuntu@k8s-master:~$ sudo apt-get install bash-completion -y
+  <exit and log back in>
+  ubuntu@k8s-master:~$ source <(kubectl completion bash)
+  ubuntu@k8s-master:~$ echo "source <(kubectl completion bash)" >> $HOME/.bashrc
+  
+  ubuntu@k8s-master:~$ alias k=kubectl
+  ubuntu@k8s-master:~$ complete -o default -F __start_kubectl k
+  ubuntu@k8s-master:~$ echo "alias k=kubectl" >> ~/.bashrc
+  ubuntu@k8s-master:~$ echo "complete -o default -F __start_kubectl k" >> ~/.bashrc
+  ```
+
+#### 3.4.2 Cilium과 Calico의 주요 특징 비교
+
+| 구분 | Cilium | Calico |
+|------|--------|--------|
+| **출시 시기** | • 2017년 ([GitHub 출시 기록](https://github.com/cilium/cilium)) | • 2016년 ([GitHub 출시 기록](https://github.com/projectcalico/calico)) |
+| **사용자 수 및 인기** | • CNCF Graduation level project([Ref.](https://www.cncf.io/projects/))로 등록 ([cilium](https://www.cncf.io/projects/cilium/))됨. 고성능 및 보안 기능으로 대규모 클러스터에서 주목받고 있음 | • Kubernetes 네트워킹 솔루션 중 널리 사용되며, BGP를 활용한 안정성과 호환성으로 많은 사용자 보유 |
+| **네트워킹 방식 및 성능** | • [eBPF](https://ebpf.io/what-is-ebpf/) 기반으로 높은 성능과 낮은 레이턴시 제공, eBPF 기반 로드 밸런싱 및 직접 라우팅 지원 | • BGP 및 VXLAN/IPIP 지원, 기본 성능 제공, 네트워크 오버레이 없는 BGP 사용 가능 |
+| **보안 및 정책 설정** | • L3/L4 및 L7 레벨의 애플리케이션 인식 정책 지원 (HTTP, gRPC 등), Cilium Network Policy (Ref. [L7 example](https://docs.cilium.io/en/latest/security/policy/language/#layer-7-examples))로 세밀한 제어 가능 | • L3/L4 레벨 정책 지원, iptables 및 선택적 eBPF 사용 가능 |
+| **서비스 메쉬 및 클러스터 통신** | • Istio, Linkerd 등과 네이티브 통합 지원, ClusterMesh로 클러스터 간 통신 및 서비스 발견 지원 | • 서비스 메쉬 통합 시 추가 컴포넌트 필요, 클러스터 간 통신 지원 제한적 |
+| **온프레미스 호환성 및 용도** | • 최신 대규모 환경에 적합한 아키텍처로, 고성능과 확장성이 필요한 환경에 적합 | • 기존 네트워크 인프라와 호환성 높아, 간단하고 안정적인 네트워킹이 필요한 경우 유리 |
+
+### 3.5 쿠버네티스 환경 구축 (워커 노드)
+
+#### 3.5.1 Install Kubernetes
+
+마스터 노드에서 클러스터 생성 하고 난 뒤, 토큰의 값들로 join 하는 명령어를 확인합니다. control-plane이 아닌 worker nodes의 명령어를 복사합니다.
+
+```bash
+You can now join any number of the control-plane node running the following command on each as root:
+
+  kubeadm join k8s-master:6443 --token 4yu434.25kdimbmjmgy7hy4 \
+        --discovery-token-ca-cert-hash sha256:f2a9dd1cc184942ca231ab5bb1c4c18d1f12e78fb8ef36420792c0d4f071de9c \
+        --control-plane --certificate-key 8e0ed744428048d0e11c2a12576d43015dffead927ad25f6045cd0686df076bf
+
+Please note that the certificate-key gives access to cluster sensitive data, keep it secret!
+As a safeguard, uploaded-certs will be deleted in two hours; If necessary, you can use
+"kubeadm init phase upload-certs --upload-certs" to reload certs afterward.
+
+Then you can join any number of worker nodes by running the following on each as root:
+
+kubeadm join k8s-master:6443 --token 4yu434.25kdimbmjmgy7hy4 \
+        --discovery-token-ca-cert-hash sha256:f2a9dd1cc184942ca231ab5bb1c4c18d1f12e78fb8ef36420792c0d4f071de9c
+```
+
+**워커 노드에서 접속하여, join을 시도합니다.**
+```bash
+sudo kubeadm join k8s-master:6443 --token 4yu434.25kdimbmjmgy7hy4 \
+        --discovery-token-ca-cert-hash sha256:f2a9dd1cc184942ca231ab5bb1c4c18d1f12e78fb8ef36420792c0d4f071de9c
+```
+
+**마스터 노드에서 k get nodes, k get pods -A 를 통해 nodes와 pods가 잘 생성 됐는지 확인합니다.**
+```bash
+ubuntu@k8s-master:~$ k get nodes
+NAME          STATUS   ROLES           AGE    VERSION
+k8s-master    Ready    control-plane   140m   v1.31.1
+k8s-worker1   Ready    <none>          69m    v1.31.1
+k8s-worker2   Ready    <none>          64m    v1.31.1
+
+ubuntu@k8s-master:~$ k get pods -A
+NAMESPACE     NAME                                 READY   STATUS    RESTARTS   AGE
+kube-system   cilium-7fqch                         1/1     Running   0          69m
+kube-system   cilium-7rrgm                         1/1     Running   0          65m
+kube-system   cilium-btxrp                         1/1     Running   0          114m
+kube-system   cilium-operator-ddb9b866-t6j8f       1/1     Running   0          114m
+kube-system   cilium-operator-ddb9b866-xrxcq       1/1     Running   0          114m
+kube-system   coredns-7c65d6cfc9-9rkqn             1/1     Running   0          140m
+kube-system   coredns-7c65d6cfc9-zrslj             1/1     Running   0          140m
+kube-system   etcd-k8s-master                      1/1     Running   0          140m
+kube-system   kube-apiserver-k8s-master            1/1     Running   0          140m
+kube-system   kube-controller-manager-k8s-master   1/1     Running   0          140m
+kube-system   kube-proxy-4nzs4                     1/1     Running   0          65m
+kube-system   kube-proxy-hcljz                     1/1     Running   0          140m
+kube-system   kube-proxy-kjq8b                     1/1     Running   0          69m
+kube-system   kube-scheduler-k8s-master            1/1     Running   0          140m
+```
+
+---
+
+## 4. 쿠버네티스의 명령어
+
+### 4.1 Node 관리
+
+#### 4.1.1 Nodes
+- 컨테이너를 포함한 **Pod는 Node에서 실행**된다.
+- **Node는 물리머신이거나 가상머신**이다.
+- Node는 **Control-plane에 의해 관리**되며 Pod를 실행하는데 필요한 서비스를 포함한다
+
+#### 4.1.2 kubectl get nodes
+```bash
+# node의 리스트를 얻어옵니다.
+kubectl get nodes
+
+# OS, Kernel, Container의 정보를 얻어옵니다.
+kubectl get nodes -o wide
+```
+
+#### 4.1.3 Node 스케쥴링 중단 및 허용
+```bash
+# 노드 스케줄링 중단(cordon)
+kubectl cordon node_name
+
+# 노드 스케쥴링 허용(uncordon)
+kubectl uncordon node_name
+```
+
+#### 4.1.4 노드 비우기(drain)
+- 특정 노드에서 동작중인 모든 Pod를 제거
+```bash
+kubectl drain NODE [options]
+--ignore-daemonsets     # DaemonSet-managed pod들은 ignore.
+--force=false          # RC, RS, Job, DaemonSet 또는 StatefulSet에서 관리하지 않는 Pod까지 제거.
+```
+
+#### 4.1.5 노드 삭제(delete)
+```bash
+kubectl delete node node_name
+```
+
+#### 4.1.6 노드 추가(join)
+```bash
+kubeadm join MASTER_IP:6443 --token XXX --discovery-token-ca-cert-hash XXXXXXXX
+```
+
+### 4.2 Pods 관리
+
+#### 4.2.1 Pods
+- **컨테이너를 표현하는 k8s API의 최소 단위**
+- **하나 또는 여러 개의 컨테이너의 그룹**
+- **스토리지 및 네트워크를 공유**
+- 해당 컨테이너를 구동하는 방식에 대한 명세를 가진다.
+
+#### 4.2.2 Commands 명령 실행
+
+![Pod 명령어 실행](/assets/Images/10.Kubernetes/image%2011.png)
+
+*kubectl을 통한 Pod 명령어 실행 구조*
+
+#### 4.2.3 Pod Template으로 Pod 실행
+- **파드템플릿(PodTemplate)은 파드를 생성하기 위한 명세**이다.
+- **Pod Template은 yaml 형식이나 json 형식**을 가진다.
+- Pod Template 을 사용하여 실제 파드가 동작된다.
+
+![Pod Template](/assets/Images/10.Kubernetes/image%2012.png)
+
+*Pod Template의 구조와 역할*
+
+#### 4.2.4 Pod 관리 Commands
+```bash
+# 동작중인 파드 정보 보기
+kubectl get pods
+kubectl describe pod webserver
+
+# 동작중인 파드 수정
+kubectl edit pod webserver
+
+# 동작중인 파드 삭제
+kubectl delete pod webserver
+
+# 파드내 컨테이너 로그보기
+kubectl logs webserver
+
+# 동작중인 파드로 연결
+kubectl exec -it webserver -- /bin/bash
+```
+
+#### 4.2.5 Label과 Selector
+- **Node를 포함하여 pod, deployment 등 모든 리소스에 할당**
+- **리소스의 특성을 분류하고, Selector를 이용해서 선택**
+- **Key-value 한쌍으로 적용**
+
+![Label과 Selector](/assets/Images/10.Kubernetes/image%2013.png)
+
+*Label과 Selector를 활용한 리소스 관리*
+
+#### 4.2.6 Label과 Selector Command
+```bash
+# Label 보기
+kubectl get pods --show-labels
+kubectl get pods -l <label_name>
+
+# Label 생성 및 변경
+kubectl label pod <name> key=value
+kubectl label pod <name> key=value --overwrite
+
+# Label 확인
+kubectl label pod <name> --show-labels
+
+# Label 제거
+kubectl label pod <name> key-
+```
+
+#### 4.2.7 Annotation
+- **Label과 동일하게 key-value를 통해 리소스의 특성을 기록**
+- **Kubernetes 에게 특정 정보 전달할 용도로 사용**
+- 예를 들어 Deployment의 rolling update 정보 기록
+  ```yaml
+  annotations:
+    kubernetes.io/change-cause: version 1.15
+  ```
+- **관리를 위해 필요한 정보를 기록할 용도로 사용**
+- 릴리즈, 로깅, 모니터링에 필요한 정보들을 기록
+  ```yaml
+  annotations:
+    builder: "Seungsuk Ryoo (seungsuk.ryoo@bespinglobal.com)"
+    buildDate: "20230814"
+    imageRegistry: https://hub.docker.com/
+  ```
+
+#### 4.2.8 Node Label
+- **Worker node에 할당된 label을 이용해 node를 선택**
+- node Label 설정
+  ```bash
+  kubectl label nodes <노드 이름> <레이블 키>=<레이블 값>
+  kubectl label nodes node1.example.com type=ssd
+  kubectl get nodes -L type
+  ```
+
+![Node Label 설정](/assets/Images/10.Kubernetes/image%2014.png)
+
+*Node Label을 활용한 노드 선택*
+
+### 4.3 Controller
+
+#### 4.3.1 컨트롤러 종류
+
+![컨트롤러 종류](/assets/Images/10.Kubernetes/image%2015.png)
+
+*Kubernetes 컨트롤러의 다양한 종류와 역할*
+
+#### 4.3.2 Replication Controller
+
+![Replication Controller](/assets/Images/10.Kubernetes/image%2016.png)
+
+*Replication Controller의 동작 방식*
+
+#### 4.3.3 ReplicaSet
+- **ReplicationController 와 같은 역할을 하는 컨트롤러**
+- **ReplicationController 보다 풍부한 selector**
+  ```yaml
+  selector:
+    matchLabels:
+      component: redis
+  matchExpressions:
+    - {key: tier, operator: In, values: [cache]}
+    - {key: environment, operator: NotIn, values: [dev]}
+  ```
+
+##### matchExpressions 연산자
+- **In**: key와 values를 지정하여 key, value가 일치하는 Pod만 연결
+- **NotIn**: key는 일치하고 value는 일치하지 않는 Pod에 연결
+- **Exists**: key에 맞는 label의 pod를 연결
+- **DoesNotExist**: key와 다른 label의 pod를 연결
+
+#### 4.3.4 Deployment
+- **ReplicaSet을 컨트롤해서 Pod수를 조절**
+- **Rolling Update & Rolling Back**
+
+![Deployment Rolling Update](/assets/Images/10.Kubernetes/image%2017.png)
+
+*Deployment의 Rolling Update 과정*
+
+##### Rolling Update
+```bash
+kubectl set image deployment <deploy_name> <container_name>=<new_version_image>
+```
+
+##### RollBack
+```bash
+kubectl rollout history deployment <deploy_name>
+kubectl rollout undo deploy <deploy_name>
+```
+
+![Deployment Rollback](/assets/Images/10.Kubernetes/image%2018.png)
+
+*Deployment의 Rollback 프로세스*
+
+##### Annotation
+- key-value를 통해 리소스 특성을 기록
+- Kubernetes 에게 특정 정보 전달할 용도로 사용
+- 예를 들어 Deployment의 rolling update 정보 기록
+  ```yaml
+  annotations:
+    kubernetes.io/change-cause: version 1.15
+  ```
+
+#### 4.3.5 DaemonSet
+- **전체 노드에서 Pod가 한 개씩 실행되도록 보장**
+- **로그 수집기, 모니터링 에이전트와 같은 프로그램 실행 시 적용**
+
+![DaemonSet](/assets/Images/10.Kubernetes/image%2019.png)
+
+*DaemonSet을 통한 각 노드별 Pod 배포*
+
+#### 4.3.6 StatefulSet
+- **Pod의 상태를 유지해주는 컨트롤러**
+  - Pod 이름
+  - Pod의 볼륨(스토리지)
+- **Pod는 고유한 ID를 가지고 순서대로 실행**된다.
+
+![StatefulSet](/assets/Images/10.Kubernetes/image%2020.png)
+
+*StatefulSet의 순차적 Pod 생성과 관리*
+
+#### 4.3.7 Job
+- **Kubernetes는 Pod를 running 중인 상태로 유지**
+- **Batch 처리하는 Pod는 작업이 완료되면 종료됨**
+  - 작업이 완료되어도 Pod가 제거되지는 않음
+  - 작업이 완료되는 시점이 중요한 서비스에 유용
+- **Batch 처리에 적합한 컨트롤러로 Pod의 성공적인 완료를 보장**
+  - Pod 내의 컨테이너가 비정상 종료 시 다시 실행
+  - Pod 내의 컨테이너가 정상 종료 시 완료
+
+![Job](/assets/Images/10.Kubernetes/image%2021.png)
+
+*Job을 통한 배치 작업 처리*
+
+#### 4.3.8 CronJob
+- **job 오브젝트에 linux cronjob의 스케줄링 기능을 추가**
+- 다음과 같은 **자동화 작업에 유리**
+  - Data Backup
+  - Send email
+  - Cleaning tasks
+- **CronJob Controller가 관리**
+- **Cronjob Schedule: "0 3 1 * *"**
+  - Minutes (from 0 to 59)
+  - Hours (from 0 to 23)
+  - Day of the month (from 1 to 31)
+  - Month (from 1 to 12)
+  - Day of the week (from 0 to 6)
+
+![CronJob Schedule](/assets/Images/10.Kubernetes/image%2022.png)
+
+*CronJob 스케줄링 형식*
+
+### 4.4 Services
+
+#### 4.4.1 docker0
+- **브릿지 네트워크는 모든 Docker 호스트에 존재**
+- **docker0**
+  - Docker 호스트의 default network
+  - 컨테이너를 NAT를 사용하여 호스트 외부 네트워크로 포워딩
+  - 172.17.0.0/16을 사용하여 DHCP로 컨테이너에 IP address 제공
+  - 172.17.0.1이 docker0에 할당
+  - 컨테이너에 할당된 IP 확인: docker inspect
+
+![Docker Network](/assets/Images/10.Kubernetes/image%2023.png)
+
+*Docker의 기본 네트워크 구조*
+
+#### 4.4.2 Multi Host Docker System
+
+![Multi Host Docker](/assets/Images/10.Kubernetes/image%2024.png)
+
+*멀티 호스트 Docker 시스템 구조*
+
+#### 4.4.3 Overlay Network
+```bash
+ip netns add v-net-0
+ip link add v-net-0 type bridge
+ip link set dev v-net-0 up
+ip link add veth0 type veth peer name veth1
+ip link set veth1 netns v-net-0
+ip link set veth0 up
+ip addr add 10.244.1.1/24 dev veth0
+ip netns exec v-net-0 ip link set veth1up
+ip netns exec v-net-0 ip addr add 10.244.1.2/24 dev veth1
+ip netns exec v-net-0 ip route add 10.244.1.0/24 via
+192.168.1.1
+iptables –t nat –A POSTROUTING –s 10.244.0.0/24 –j
+MASQUERADE
+ip route add 10.244.1.0 via 192.168.1.1
+ip route add 10.244.2.0 via 192.168.2.1
+```
+
+![Overlay Network 1](/assets/Images/10.Kubernetes/image%2025.png)
+
+*Overlay Network 구성도 1*
+
+![Overlay Network 2](/assets/Images/10.Kubernetes/image%2026.png)
+
+*Overlay Network 구성도 2*
+
+### 4.5 Self-Healing
+
+#### 4.5.1 Liveness Probe
+- **Pod가 계속 실행할 수 있음을 보장**
+- **Pod의 spec에 정의**
+
+#### 4.5.2 Liveness 메커니즘
+- **httpGet probe**
+- **tcpSocket probe**
+- **exec probe**
+
+#### 4.5.3 Liveness 매개 변수
+- **periodSeconds**: health check 반복 실행 시간(초)
+- **initialDelaySeconds**: Pod 실행 후 delay할 시간(초)
+- **timeoutSeconds**: health check후 응답을 기다리는 시간(초)
+
+#### 4.5.4 ReadinessProbe
+- **liveness와 비슷함**
+- **Pod가 준비가 되었을 때 신호(Endpoint)를 보냄**
+- **ReadinessProbe 메커니즘**
+  - httpGet
+  - tcpSocket
+  - exec
+
+---
+
+## 5. EKS 설치 및 삭제
+
+### 5.1 EKS란
+
+**Amazon Elastic Kubernetes Service(Amazon EKS)**는 Amazon Web Services(AWS) 클라우드와 자체 데이터 센터([EKS Anywhere](https://anywhere.eks.amazonaws.com/) 및 [Amazon EKS Hybrid Nodes](https://docs.aws.amazon.com/ko_kr/eks/latest/userguide/hybrid-nodes-overview.html)) 모두에서 [Kubernetes](https://kubernetes.io/docs/concepts/overview/) 클러스터를 실행하는 데 있어 최적의 플랫폼입니다.
+
+- Amazon EKS는 **Kubernetes 클러스터의 구축, 보안 및 유지 관리를 간소화**합니다. 
+- 자체 데이터 센터를 유지 관리하는 것보다 **피크 수요를 충족할 수 있도록 충분한 리소스를 제공하는 편이 비용 효율적**
+
+### 5.2 Amazon EKS 사용과 관련된 두 가지 주요 접근 방식
+
+#### 5.2.1 EKS 표준
+EKS로 클러스터를 생성할 때 AWS가 [Kubernetes 컨트롤 플레인](https://kubernetes.io/docs/concepts/overview/components/#control-plane-components)(Kubernetes 데이터 플레인)도 관리하도록 제어를 확장합니다. 인프라를 자동으로 프로비저닝하고, 최적의 컴퓨팅 인스턴스를 선택하고, 리소스를 동적으로 확장하고, 비용을 지속적으로 최적화하고, 운영 체제를 패치하고, AWS 보안 서비스와 통합하여 Kubernetes 관리를 간소화합니다.
+
+을 관리합니다. **노드를 관리하고, 워크로드를 예약하고, AWS 클라우드와 통합하고, 컨트롤 플레인 정보를 저장하고 확장**하여 클러스터의 가동을 유지하도록 하는 구성 요소가 자동으로 처리됩니다.
+
+#### 5.2.2 EKS Auto Mode
+[EKS Auto Mode](https://docs.aws.amazon.com/ko_kr/eks/latest/userguide/automode.html) 기능을 사용하면 EKS는 [노드](https://kubernetes.io/docs/concepts/overview/components/#node-components)
+
+![EKS 구조도](/assets/Images/10.Kubernetes/eks-architecture.png)
+
+*Amazon EKS의 구조와 구성 요소*
+
+Amazon EKS를 사용하면 **프로덕션 시간을 단축하고, 성능, 가용성 및 복원력을 개선하고, 시스템 보안을 강화**할 수 있습니다. 
+
+> 📖 **자세한 내용**: [Amazon Elastic Kubernetes Service](https://aws.amazon.com/eks/)를 참조
+
+### 5.3 CLI 설치
+
+#### 5.3.1 기본 설정 확인
+```bash
+aws sts get-caller-identity
+complete
+which aws_completer
+echo $PATH
+aws d[TAB][TAB]
+```
+
+**서울리전이고, 기본VPC가 있는지 확인**
+```bash
+echo $AWS_REGION
+# => ap-northeast-2
+aws ec2 describe-vpcs --filters "Name=is-default,Values=true"
+# 기본 VPC가 없으면 생성하기
+```
+
+#### 5.3.2 CloudFormation 스택 배포
+
+CloudFormation 스택을 배포하는 데 **약 5분이상 소요**되며, 완료되면 출력(Outputs) 탭에서 계속하는 데 필요한 정보를 검색할 수 있습니다.
+
+**eks-workshop-ide-cfn.yaml**을 사용하여 EKS 워크샵 환경을 구축합니다:
+
+```yaml
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Creates a code-server IDE for the EKS workshop
+Parameters:
+  InstanceVolumeSize:
+    Type: Number
+    Description: The Size in GB of the Cloud9 Instance Volume.
+    Default: 30
+  RepositoryOwner:
+    Type: String
+    Description: The owner of the GitHub repository to be used to bootstrap Cloud9
+    Default: "aws-samples"
+  RepositoryName:
+    Type: String
+    Description: The name of the GitHub repository to be used to bootstrap Cloud9
+    Default: "eks-workshop-v2"
+  RepositoryRef:
+    Type: String
+    Description: The Git reference to be used to bootstrap Cloud9
+    Default: "main"
+  # ... (나머지 CloudFormation 템플릿 내용)
+```
+
+**배포 명령어:**
+```bash
+ls
+eks-workshop-ide-cfn.yaml
+
+aws cloudformation deploy --stack-name eks-workshop-ide \
+    --template-file ./eks-workshop-ide-cfn.yaml \
+    --parameter-overrides RepositoryRef=stable \
+    --capabilities CAPABILITY_NAMED_IAM
+```
+
+#### 5.3.3 출력 값 확인
+- **IdeUrl** 출력에는 IDE에 액세스하기 위해 브라우저에 입력할 URL이 포함
+- **IdePasswordSecret** 출력에는 IDE에 대해 생성된 암호가 포함된 AWS Secrets Manager 비밀에 대한 링크가 포함
+
+### 5.4 EKS 클러스터 생성
+
+#### 5.4.1 cluster.yaml 설정
+```yaml
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+availabilityZones:
+  - ${AWS_REGION}a
+  - ${AWS_REGION}b
+  - ${AWS_REGION}c
+metadata:
+  name: ${EKS_CLUSTER_NAME}
+  region: ${AWS_REGION}
+  version: "1.31"
+  tags:
+    karpenter.sh/discovery: ${EKS_CLUSTER_NAME}
+    created-by: eks-workshop-v2
+    env: ${EKS_CLUSTER_NAME}
+iam:
+  withOIDC: true
+vpc:
+  cidr: 10.42.0.0/16
+  clusterEndpoints:
+    privateAccess: true
+    publicAccess: true
+remoteNetworkConfig:
+  remoteNodeNetworks:
+    - cidrs: ["10.52.0.0/16"]
+  remotePodNetworks:
+    - cidrs: ["10.53.0.0/16"]
+addons:
+  - name: vpc-cni
+    version: 1.19.2
+    configurationValues: '{"env":{"ENABLE_PREFIX_DELEGATION":"true", "ENABLE_POD_ENI":"true", "POD_SECURITY_GROUP_ENFORCING_MODE":"standard"},"enableNetworkPolicy": "true", "nodeAgent": {"enablePolicyEventLogs": "true"}}'
+    resolveConflicts: overwrite
+managedNodeGroups:
+  - name: default
+    desiredCapacity: 3
+    minSize: 3
+    maxSize: 6
+    instanceType: m5.large
+    privateNetworking: true
+    releaseVersion: "1.31.3-20250103"
+    updateConfig:
+      maxUnavailablePercentage: 50
+    labels:
+      workshop-default: "yes"
+```
+
+#### 5.4.2 클러스터 생성 명령어
+```bash
+ec2-user:~/environment:$ echo $AWS_REGION
+ap-northeast-2
+
+ec2-user:~/environment:$ export EKS_CLUSTER_NAME=eks-workshop
+ec2-user:~/environment:$ echo $EKS_CLUSTER_NAME
+eks-workshop
+
+ec2-user:~/environment:$ cat cluster.yaml
+# ..
+ec2-user:~/environment:$ cat cluster.yaml | envsubst
+
+ec2-user:~/environment:$ cat cluster.yaml | envsubst > cluster-k8s-user.yaml
+ec2-user:~/environment:$ ls
+cluster-k8s-user.yaml  cluster.yaml
+
+ec2-user:~/environment:$ eksctl create cluster -f cluster-k8s-user.yaml
+2025-05-23 02:37:15 [ℹ]  eksctl version 0.207.0
+```
+
+이 섹션에서는 [eksctl 도구](https://eksctl.io/)를 사용하여 실습을 위한 클러스터를 구축하는 방법을 설명합니다. 이는 **가장 간단한 방법**이며, 대부분의 학습자에게 권장됩니다.
+
+또한, Amazon Cloud9 환경에는 **eksctl 유틸리티가 미리 설치되어 있으므로**, 바로 클러스터를 생성할 수 있습니다.
+
+> 📖 **참고**: [eksctl Installation](https://eksctl.io/installation/)
+
+---
+
+## 📝 학습 포인트 요약
+
+### 🎯 핵심 개념
+1. **클라우드 네이티브**는 현대적이고 동적인 환경에서 확장 가능한 애플리케이션을 개발하고 실행할 수 있게 하는 기술
+2. **Kubernetes**는 컨테이너 오케스트레이션을 통해 애플리케이션의 배포, 확장, 관리를 자동화
+3. **CNCF 정의 핵심 기술**: 컨테이너, 서비스 메쉬, 마이크로서비스, 불변 인프라, 선언형 API
+4. **kubeadm**을 통한 온프레미스 Kubernetes 클러스터 구축과 **EKS**를 통한 클라우드 관리형 서비스 활용
+
+### 🛠️ 실무 활용 팁
+- **개발 환경**: Minikube나 Docker Desktop Kubernetes 활용
+- **운영 환경**: EKS, GKE, AKS 등 관리형 서비스 권장
+- **네트워킹**: Cilium과 Calico 중 환경에 맞는 CNI 선택
+- **모니터링**: 자가 치유 기능을 위한 Liveness/Readiness Probe 설정
+
+### 🔄 DevOps 연계
+- **CI/CD 파이프라인**과 Kubernetes 연동으로 자동화된 배포 구현
+- **Infrastructure as Code**를 통한 일관된 환경 관리
+- **선언형 API**를 활용한 GitOps 워크플로우 구축
+
+### 📚 다음 단계
+이 가이드를 통해 Cloud Native와 Kubernetes의 기본 개념을 익혔다면, 다음으로 **Helm을 활용한 패키지 관리**, **서비스 메쉬 구현**, **모니터링 및 로깅 시스템 구축**을 학습하는 것을 권장합니다.
+
+---
+
+> 💡 **추가 학습 자료**: 
+> - [Kubernetes 공식 문서](https://kubernetes.io/ko/docs/home/)
+> - [CNCF 프로젝트](https://www.cncf.io/projects/)
+> - [AWS EKS 워크샵](https://www.eksworkshop.com/)에서 더 자세한 정보를 확인할 수 있습니다.

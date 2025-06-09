@@ -2,7 +2,7 @@
 layout: post
 title:  "AWS에 대한 개요 및 정의"
 date:   2025-06-09 12:20 +0900
-categories: Database
+categories: AWS CSP
 ---
 
 .

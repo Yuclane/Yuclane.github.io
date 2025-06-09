@@ -1,0 +1,378 @@
+---
+layout: post
+title:  "Docker & Container 기초 개념"
+date:   2025-06-09 16:47 +0900
+categories: Docker Container
+---
+
+.
+
+# Docker와 Container 기초 가이드
+
+## 목차 (Table of Contents)
+1. [도커 설치](#1-도커-설치)
+2. [컨테이너](#2-컨테이너)
+3. [컨테이너의 특징](#3-컨테이너의-특징)
+4. [Image의 특징](#4-image의-특징)
+5. [명령어 기초지식](#5-명령어-기초지식)
+6. [명령어 치트 시트](#6-명령어-치트-시트)
+7. [컨테이너의 상태](#7-컨테이너의-상태)
+8. [실습: Container 기본 조작](#8-실습-container-기본-조작)
+
+---
+
+## 1. 도커 설치
+
+### 1.1 Windows 설치
+1. **Docker Desktop 설치**
+2. **Docker WSL2 설치** (Desktop에서 함께 설치됨)
+3. **Docker Desktop 실행** 후, 데몬에 Docker Socket 관리 프로세스가 있는지 확인
+4. **Docker Desktop 로그인** 후 PowerShell 확인
+
+### 1.2 Linux 설치
+1. **VM 또는 EC2 설치**
+2. 패키지 설치:
+```bash
+sudo apt install docker-ce
+```
+
+---
+
+## 2. 컨테이너
+
+### 2.1 컨테이너 정의
+- **Docker 컨테이너**는 어떤 명령어 하나를 실행하기 위해 호스트 머신에 작성된 **독립적인 영역**
+- **영역**이란 프로세스나 파일 등이 호스트 머신이나 다른 컨테이너의 영향을 받지 않도록 독립된 범위를 의미
+- **실행할 명령어 1개당 컨테이너 1개**를 작성
+
+### 2.2 컨테이너 구성 요소
+```
+영역 = 프로세스 + 파일 + 사용자
+```
+
+### 2.3 격리 메커니즘
+- 각 컨테이너 내부의 프로세스와 파일은 호스트 머신과 다른 컨테이너에 영향을 주지 않음
+- Docker는 Linux의 **chroot**, **네임스페이스**, **cgroups** 기능을 조합하여 활용
+- 1대의 호스트머신에 **PID1이 여러 개 존재**하는 상태가 되지만, 충돌 없이 여러 PID1이 공존하도록 하는 것이 Docker의 역할
+
+---
+
+## 3. 컨테이너의 특징
+
+1. **컨테이너는 Image에서 작성됨**
+2. **각 컨테이너는 서로 독립적임**
+3. **컨테이너는 런타임이 있으면 어디에서나 작동됨**
+
+---
+
+## 4. Image의 특징
+
+1. **Image**란 컨테이너 실행에 필요한 패키지를 말하며, **다수의 Layer로 구성**
+2. **각 Layer는 Tar 아카이브 파일**
+
+---
+
+## 5. 명령어 기초지식
+
+### 5.1 Docker 공식 문서
+- **검색**: docker docs command line interface
+- 📖 [Docker CLI 참조 문서](https://docs.docker.com/reference/cli/docker/)
+
+### 5.2 기본 명령어 구조
+
+#### Docker 버전 확인
+```bash
+docker version
+```
+
+#### Docker 대상지정 서브 명령어
+```bash
+docker container run
+```
+
+### 5.3 주요 명령어 패턴
+
+#### 컨테이너(Container) 가동
+```bash
+docker container run [OPTIONS] IMAGE [COMMAND] [ARG...]
+```
+
+#### 가동중인 컨테이너에 명령 전달
+```bash
+docker container exec [OPTIONS] CONTAINER COMMAND [ARG...]
+```
+
+#### 이미지(Image) 작성
+```bash
+docker image build [OPTIONS] PATH | URL
+```
+
+### 5.4 서브 명령어 카테고리
+```bash
+# 컨테이너 관련
+docker container ls / start / stop / restart / rm / prune
+
+# 이미지 관련  
+docker image ls / build / rm / prune / push / pull
+
+# 볼륨 관련
+docker volume ls / create / rm / prune
+
+# 네트워크 관련
+docker network ls / create / rm / prune / connect
+```
+
+---
+
+## 6. 명령어 치트 시트
+
+### 6.1 컨테이너 실행 원칙
+- 컨테이너는 **명령어 실행이 목적**이므로, 컨테이너를 가동할 때 반드시 어떤 명령어를 실행
+- **PID1은 컨테이너와 운명을 함께함**
+- 컨테이너 내부에서 실행되는 해당 명령어의 프로세스는 컨테이너 내부에서 **PID1으로 처리**
+
+### 6.2 컨테이너 라이프사이클 다이어그램
+
+![Docker 컨테이너 라이프사이클](/assets/Images/9.Docker/image.png)
+
+*컨테이너의 생성부터 삭제까지의 전체 라이프사이클*
+
+![Docker 명령어 치트시트](/assets/Images/9.Docker/image%201.png)
+
+*주요 Docker 명령어와 옵션들*
+
+---
+
+## 7. 컨테이너의 상태
+
+| 상태 | 설명 | PID1 상태 |
+|------|------|-----------|
+| **created** | 컨테이너 작성됨 | PID1 없음 |
+| **running** | 컨테이너 가동됨 | PID1 실행중 |
+| **paused** | 컨테이너 일시 정지 | PID1 중지 |
+| **restarting** | 컨테이너 재시작 | PID1 재시작 후 running 상태로 복귀 |
+| **exited** | 컨테이너 종료 | PID1 없음 |
+| **dead** | 컨테이너 종료 실패 | PID1 없음 |
+| **removing** | 컨테이너 삭제됨 | PID1 사라지고 있음 |
+
+### 7.1 컨테이너 가동 및 접근 옵션
+- `-i, --interactive`: 대화형 모드
+- `-t, --tty`: TTY 할당
+- `/bin/bash`: Bash 셸 실행
+
+**조합 예시:**
+```bash
+docker container run -i -t ubuntu bash
+```
+
+---
+
+## 8. 실습: Container 기본 조작
+
+> **주의**: 아래 실습은 Linux 환경의 Docker에서 진행됩니다.
+
+### 8.1 기본 컨테이너 가동
+
+#### Hello World 컨테이너 실행
+```bash
+# 기본 실행
+docker container run hello-world
+
+# 이미지 확인
+docker image ls
+
+# 컨테이너 목록 확인
+docker container ls
+docker container ls --all  # 또는 -a
+docker ps -a
+```
+
+**컨테이너 목록 항목 설명:**
+- **CONTAINER ID**: 컨테이너 ID(무작위 생성)
+- **IMAGE**: 사용된 이미지
+- **COMMAND**: PID1에서 실행하는 명령
+- **CREATED**: 생성 시간
+- **STATUS**: 현재 상태
+- **PORTS**: 포트 매핑
+- **NAMES**: 컨테이너명(미지정 시 무작위)
+
+### 8.2 대화형 컨테이너 실행
+
+```bash
+# 다양한 대화형 실행 방법
+docker container run --interactive --tty ubuntu bash
+docker container run -i -t ubuntu bash
+docker container run -it ubuntu bash
+docker container run -it ubuntu /bin/bash
+docker container run -it ubuntu
+```
+
+### 8.3 컨테이너 관리
+
+#### 컨테이너 재시작 및 접속
+컨테이너에서 `exit`를 실행한 경우:
+
+```bash
+# 컨테이너 재시작
+docker container restart [CONTAINER_ID]
+
+# 실행 중인 컨테이너에 접속
+docker container exec -it [CONTAINER_ID] /bin/bash
+docker container exec -it [CONTAINER_ID] bash
+```
+
+#### 컨테이너 중지
+```bash
+docker container stop [CONTAINER_ID]
+```
+
+#### 컨테이너 삭제
+```bash
+# 기본 삭제
+docker container rm [CONTAINER_ID]
+docker container rm [CONTAINER_NAME]
+
+# 강제 삭제 (실행 중인 컨테이너)
+docker container rm --force [CONTAINER_ID]
+```
+
+### 8.4 임시 명령 실행
+
+```bash
+# 단일 명령 실행
+docker container run ubuntu whoami
+docker container run ubuntu head -n 4 /etc/os-release
+
+# Ruby 인라인 실행
+docker container run ruby ruby -e 'print 20+10'
+```
+
+### 8.5 컨테이너 이름 지정 및 자동 삭제
+
+```bash
+# 이름 지정
+docker container run --name hello hello-world
+
+# 자동 삭제 옵션
+docker container run --name hello2 --rm hello-world
+
+# Python 대화형 실행 (자동 삭제)
+docker container run --rm -it python python3
+```
+
+**Python 인터프리터 사용 예시:**
+```python
+20+10
+print('Hello World')
+sum([10,20,30,40])
+exit()
+```
+
+### 8.6 포트 공개
+
+```bash
+# Nginx 웹서버 실행 (포트 매핑)
+docker container run --rm --publish 8080:80 nginx
+
+# 다른 터미널에서 테스트
+curl http://localhost:8080
+```
+
+### 8.7 환경변수 설정: MySQL 서버 예시
+
+#### 기본 MySQL 실행 (오류 확인)
+```bash
+# 환경변수 없이 실행 - 오류 발생
+docker container run --name db --rm mysql
+```
+
+#### 환경변수와 함께 MySQL 실행
+```bash
+docker container run \
+--name db \
+--rm \
+--env MYSQL_ROOT_PASSWORD=toor \
+--publish 3306:3306 \
+mysql
+```
+
+#### MySQL 클라이언트 설치 및 접속
+```bash
+# 클라이언트 설치
+apt update
+apt install -y mysql-client
+mysql --version
+
+# MySQL 서버 접속
+mysql --host=127.0.0.1 --port=3306 --user=root --password=toor
+```
+
+**MySQL 작업 예시:**
+```sql
+mysql> show databases;
+mysql> select version();
+mysql> create database mydb;
+mysql> use mydb;
+mysql> create table t1(id int, name varchar(10));
+mysql> insert into t1 values (10,'Jane');
+mysql> insert into t1 values (20,'Alice');
+mysql> insert into t1 values (30,'Tom');
+mysql> select * from t1;
+mysql> exit;
+```
+
+#### 추가 환경변수가 포함된 MySQL 실행
+```bash
+docker container run \
+--name db \
+--rm \
+--env MYSQL_ROOT_PASSWORD=toor \
+--env MYSQL_USER=tony \
+--env MYSQL_PASSWORD=pass1234 \
+--env MYSQL_DATABASE=mydb00 \
+--publish 3306:3306 \
+mysql
+```
+
+```bash
+# 사용자 계정으로 접속
+mysql --host=127.0.0.1 --port=3306 --user=tony --password=pass1234 mydb00
+mysql> select database();
+```
+
+#### 백그라운드에서 MySQL 실행
+```bash
+docker container run \
+--name db \
+--rm \
+--detach \
+--env MYSQL_ROOT_PASSWORD=toor \
+--env MYSQL_USER=tony \
+--env MYSQL_PASSWORD=pass1234 \
+--env MYSQL_DATABASE=mydb00 \
+--publish 3306:3306 \
+mysql
+```
+
+---
+
+## 📝 학습 포인트 요약
+
+### 핵심 개념
+1. **컨테이너는 독립적인 실행 환경**을 제공하며, 각각 고유한 PID1을 가짐
+2. **Image는 Layer 구조**로 구성되어 효율적인 저장과 배포가 가능
+3. **환경변수와 포트 매핑**을 통해 컨테이너를 외부와 연결
+4. **자동 삭제 옵션(--rm)**으로 임시 작업에 유용
+
+### 실무 활용 팁
+- **대화형 작업**: `-it` 옵션 조합 사용
+- **백그라운드 실행**: `--detach` 옵션 활용
+- **포트 충돌 방지**: 적절한 포트 매핑 설정
+- **컨테이너 정리**: `prune` 명령어로 일괄 정리
+
+### 다음 단계
+이 가이드를 통해 Docker의 기본 개념과 컨테이너 조작법을 익혔다면, 다음으로 **Dockerfile 작성**과 **이미지 빌드** 과정을 학습하는 것을 권장합니다.
+
+---
+
+> 💡 **추가 학습 자료**: [Docker 공식 문서](https://docs.docker.com/)에서 더 자세한 정보를 확인할 수 있습니다.
