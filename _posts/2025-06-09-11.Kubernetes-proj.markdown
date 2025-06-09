@@ -1,11 +1,11 @@
 ---
 layout: post
-title:  "Kubernetes의 개요부터 설치 및 실습"
-date:   2025-06-09 17:44 +0900
+title:  "Kubernetes EKS 프로젝트 구축"
+date:   2025-06-09 18:44 +0900
 categories: kubernetes proj 
 ---
 
-.
+EKS로 기본적인 3-Tier 아키텍처 구현.
 
 # Kubernetes EKS 프로젝트 구축
 

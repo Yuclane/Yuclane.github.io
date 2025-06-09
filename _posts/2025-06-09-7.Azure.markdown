@@ -5,7 +5,7 @@ date:   2025-06-09 12:20 +0900
 categories: Azure CSP 
 ---
 
-.
+Azure에 대한 개요와 간단한 테넌트 구현
 
 # Azure 기초 학습 가이드
 

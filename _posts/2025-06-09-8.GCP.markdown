@@ -5,7 +5,7 @@ date:   2025-06-09 15:34 +0900
 categories: GCP BigQuery CSP
 ---
 
-.
+GCP 개요부터 BigQuery의 설명
 
 # GCP 개요와 BigQuery
 

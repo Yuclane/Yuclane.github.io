@@ -5,7 +5,7 @@ date:   2025-06-09 17:44 +0900
 categories: Kubernetes 
 ---
 
-.
+Kubernetes의 간단한 설치 부터 기본적인 컨테이너/포드 관리
 
 # Cloud Native와 Kubernetes 완벽 가이드
 

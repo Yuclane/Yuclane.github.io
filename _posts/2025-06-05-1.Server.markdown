@@ -5,7 +5,7 @@ date:   2025-06-05 17:28 +0900
 categories: Hardware Infra
 ---
 
-.
+서버 하드웨어/인프라에 대한 개요와 정리
 
 ## 목차 (Table of Contents)
 

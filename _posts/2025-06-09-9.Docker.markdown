@@ -5,7 +5,7 @@ date:   2025-06-09 16:47 +0900
 categories: Docker Container
 ---
 
-.
+Docker와 Container의 개념
 
 # Docker와 Container 기초 가이드
 
