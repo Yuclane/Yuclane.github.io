@@ -377,11 +377,10 @@ source ~/.bash_profile
 
 #### 3. tar 파일 다운로드
 
-[petclinic_btc.tar 다운로드](/assets/Images/11.Kubernetes-proj/petclinic_btc.tar)
-
 ```bash
 mkdir ~/tomcat
 cd ~/tomcat
+git clone https://github.com/Yuclane/petclinic
 
 tar -xvf ~/tomcat/petclinic_btc.tar
 cd ~/tomcat/petclinic_btc
